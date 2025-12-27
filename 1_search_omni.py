@@ -44,6 +44,36 @@ def get_session():
     session.mount('https://', adapter)
     return session
 
+def _get_crossref_type(doi):
+    """
+    Fetches the work type from Crossref for a given DOI.
+    """
+    cr = Crossref()
+    try:
+        # Use the works method to get metadata for a DOI
+        work = cr.works(ids=doi)
+        if work and work['message']:
+            return {
+                'type': work['message'].get('type', 'unknown'),
+                'title': work['message'].get('title', [''])[0],
+                'container-title': work['message'].get('container-title', [''])[0],
+                'publisher': work['message'].get('publisher', ''),
+                'issued': work['message'].get('issued', {}).get('date-parts', [['']])[0][0],
+                'is-referenced-by-count': work['message'].get('is-referenced-by-count', 0),
+                'reference-count': work['message'].get('reference-count', 0),
+                'subject': work['message'].get('subject', []),
+                'abstract': work['message'].get('abstract', ''),
+                'type': 'article-journal'
+            }
+    except:
+        return None
+
+# Configure file logging for debugging
+def log_debug(msg):
+    log_path = "/Users/vv2024/Documents/AI Projects/scholar-stack/debug_search.log"
+    with open(log_path, "a", encoding="utf-8") as f:
+        f.write(f"{datetime.datetime.now()} - {msg}\n")
+
 def reconstruct_abstract(inverted_index):
     """
     Reconstructs the abstract from OpenAlex's inverted index format.
@@ -96,7 +126,7 @@ class ResearchCrawler:
         self.year_end = int(date_end[:4]) if date_end else 2030
         
         self.final_target_count = int(count)
-        self.target_count = int(self.final_target_count * 1.2) + 5
+        self.target_count = int(self.final_target_count * 2.0) + 5
         
         self.sites = sites if sites else ['all']
         self.results = []
@@ -294,16 +324,18 @@ class ResearchCrawler:
                     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
                     'Range': 'bytes=0-1023' # Try to request just the header
                 }
-                # Fast timeout (2.5s), NO retries allowed by adapter
-                r = check_session.get(target_url, headers=headers, stream=True, timeout=2.5, allow_redirects=True)
+                # Fast timeout (10s), NO retries allowed by adapter
+                r = check_session.get(target_url, headers=headers, stream=True, timeout=10, allow_redirects=True)
                 
                 # Check 1: Status Code
                 if r.status_code not in [200, 206]:
+                    log_debug(f"Rejecting {target_url} - Status {r.status_code}")
                     return False
                 
                 # Check 2: Content-Type (weak check, but good early filter)
                 ct = r.headers.get('Content-Type', '').lower()
                 if 'text/html' in ct: 
+                    log_debug(f"Rejecting {target_url} - HTML Content")
                     return False
                 
                 # Check 3: Magic Bytes (Strongest Check)
@@ -314,6 +346,9 @@ class ResearchCrawler:
                 if b'%PDF' in chunk:
                     return True
                 
+                log_debug(f"Rejecting {target_url} - No Magic Bytes")
+                return False
+            except requests.exceptions.Timeout:
                 return False
             except Exception:
                 return False
@@ -437,15 +472,15 @@ class ResearchCrawler:
 
         print(f"Searching ArXiv...", flush=True)
         try:
+            # ArXiv Query Construction (Strict Phrase Matching)
+            # Topic is already quoted: all:"Topic"
+            
             if self.keywords_list:
                 kw_parts = []
                 for k in self.keywords_list:
-                    words = k.split()
-                    if len(words) > 1:
-                        sub_query = " AND ".join([f'all:"{w}"' for w in words])
-                        kw_parts.append(f"({sub_query})")
-                    else:
-                        kw_parts.append(f'all:"{k}"')
+                    # Treat the entire keyword string as a single phrase
+                    # e.g. "crosstalk cancellation" -> all:"crosstalk cancellation"
+                    kw_parts.append(f'all:"{k}"')
                 
                 kw_group = " OR ".join(kw_parts)
                 if self.keyword_logic == 'all':
@@ -461,7 +496,7 @@ class ResearchCrawler:
             client = arxiv.Client()
             search = arxiv.Search(
                 query=final_query,
-                max_results=self.target_count * 2, 
+                max_results=self.target_count * 5, # Fetch more candidates 
                 sort_by=arxiv.SortCriterion.SubmittedDate
             )
 
@@ -493,15 +528,22 @@ class ResearchCrawler:
     def search_semantic_scholar(self):
         print(f"Searching Semantic Scholar (Offset: {self.offsets['semantic']})...", flush=True)
         try:
+            # Enforce quoted phrase matching to match user's strict requirement
+            topic_phrase = f'"{self.raw_topic}"'
+            
             if self.keywords_list:
                 if self.keyword_logic == 'all':
-                    combined_k = " ".join(self.keywords_list)
-                    search_terms = [f"{self.raw_topic} {combined_k}"]
+                    # "Topic" "Key1" "Key2" (Implicit AND in S2)
+                    quoted_keywords = [f'"{k}"' for k in self.keywords_list]
+                    combined_k = " ".join(quoted_keywords)
+                    search_terms = [f"{topic_phrase} {combined_k}"]
                 else:
-                    search_terms = [f"{self.raw_topic} {k}" for k in self.keywords_list]
+                    # List of queries: "Topic" "Key1", "Topic" "Key2"...
+                    search_terms = [f'{topic_phrase} "{k}"' for k in self.keywords_list]
             else:
-                search_terms = [self.raw_topic]
-            limit_per_call = 20
+                search_terms = [topic_phrase]
+            
+            limit_per_call = 100 # Increased from 20 to dig deeper per round
             
             for term in search_terms:
                 url = "https://api.semanticscholar.org/graph/v1/paper/search"
@@ -575,9 +617,10 @@ class ResearchCrawler:
         df['norm_title'] = df['Title'].apply(lambda x: re.sub(r'[^a-z0-9]', '', str(x).lower()) if x else '')
         df = df.drop_duplicates(subset=['norm_title'], keep='first')
         
-        if len(df) > self.final_target_count:
-            print(f"Trimming results from {len(df)} to requested {self.final_target_count}...")
-            df = df.head(self.final_target_count)
+        # DO NOT trim here. We need the buffer for Phase 2 (AI Filtering).
+        # if len(df) > self.final_target_count:
+        #     print(f"Trimming results from {len(df)} to requested {self.final_target_count}...")
+        #     df = df.head(self.final_target_count)
             
         df = df.drop(columns=['norm_title'], errors='ignore')
 
@@ -589,14 +632,16 @@ class ResearchCrawler:
             # OpenAlex First (Highest Quality/Speed)
             self.search_openalex()
             
-            if len(self.results) >= self.final_target_count:
+            # Check against the BUFFERED target count (2.0x), not the final count (1.0x).
+            # This ensures we get enough buffer even if OpenAlex satisfies the bare minimum.
+            if len(self.results) >= self.target_count:
                 print("Target met with OpenAlex. Skipping other sources.")
                 return
 
             # Fallback to others
-            buffer_target = int(self.final_target_count * 1.2) + 5
+            buffer_target = self.target_count
             rounds = 0
-            max_rounds = 10
+            max_rounds = 20 # Increased to ensure we dig deep enough
             
             while len(self.results) < buffer_target and rounds < max_rounds:
                 rounds += 1
