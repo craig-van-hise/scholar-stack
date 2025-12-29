@@ -5,7 +5,8 @@ import tempfile
 import shutil
 
 def run_full_pipeline(topic, keywords=None, author=None, publication=None, 
-                      date_start=None, date_end=None, sites=None, count=10, google_api_key=None, keyword_logic='any'):
+                      date_start=None, date_end=None, sites=None, count=10, 
+                      sort_method="Most Relevant", google_api_key=None, keyword_logic='any'):
     """
     Orchestrates the full research pipeline in an isolated temporary directory.
     Yields log lines for real-time UI updates.
@@ -82,7 +83,9 @@ def run_full_pipeline(topic, keywords=None, author=None, publication=None,
         
         cluster_cmd = [
             sys.executable, script_2,
-            "--topic", topic
+            "--topic", topic,
+            "--sort", sort_method,
+            "--limit", str(count)
         ]
         
         process = subprocess.Popen(
@@ -108,7 +111,9 @@ def run_full_pipeline(topic, keywords=None, author=None, publication=None,
         yield "--- Starting Phase 3: Download & Export ---"
         
         download_cmd = [
-            sys.executable, script_3
+            sys.executable, script_3,
+            "--limit", str(count),
+            "--sort", sort_method
         ]
         
         process = subprocess.Popen(

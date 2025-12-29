@@ -138,3 +138,16 @@ cython_debug/
 .idea/
 .vscode/
 *.swp
+
+# ScholarStack Artifacts
+Library/
+*.zip
+*.pdf
+*.csv
+openalex-hybrid-search/tree_chroma_db/
+debug_*.py
+check_models.py
+list_models.py
+test_quota.py
+test_crawler_logic.py
+unpaywall_cache/

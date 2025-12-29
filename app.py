@@ -212,6 +212,13 @@ with st.sidebar:
 
     count = st.number_input("Target Paper Count", min_value=1, max_value=200, value=10)
     
+    sort_method = st.radio(
+        "Prioritize By",
+        options=["Most Relevant", "Date: Newest", "Date: Oldest"],
+        index=0,
+        help="Decides which papers to keep when trimming the list to your Target Count."
+    )
+    
     st.divider()
     
     st.header("Settings")
@@ -263,6 +270,7 @@ if start_btn:
                 date_end=d_end_str,
                 sites=selected_sites,
                 count=count,
+                sort_method=sort_method,
                 google_api_key=api_key_to_use
             )
             
