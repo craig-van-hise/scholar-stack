@@ -30,11 +30,18 @@ def get_filename_from_cd(cd):
         return None
     return fname[0].strip()
 
-def create_markdown_catalog(df, topic, output_path):
+def create_markdown_catalog(df, topic, output_path, search_params=None):
     """Generates a human-readable Markdown catalog."""
     with open(output_path, "w", encoding="utf-8") as f:
         downloaded_count = len(df[df['Is_Downloaded'] == True]) if 'Is_Downloaded' in df.columns else 0
         f.write(f"# Library Catalog: {topic}\n\n")
+        
+        if search_params:
+            f.write("## Search Settings\n")
+            for k, v in search_params.items():
+                if v: f.write(f"- **{k}:** {v}\n")
+            f.write("\n")
+            
         f.write(f"**Total Papers Listed:** {len(df)}  \n")
         f.write(f"**Total Papers Downloaded:** {downloaded_count}  \n")
         f.write(f"**Generated:** {pd.Timestamp.now().strftime('%Y-%m-%d %H:%M')}\n\n")
@@ -62,6 +69,135 @@ def create_markdown_catalog(df, topic, output_path):
                     f.write(f"    *   *Filename:* `{filename}`\n")
                 f.write(f"    *   *Source:* [Link]({url})\n")
                 f.write(f"    *   *Abstract:* {desc}\n\n")
+
+def sanitize_folder_name(name):
+    clean = "".join([c if c.isalnum() or c in (' ', '_', '-') else '' for c in name])
+    return clean.strip().replace(' ', '_')
+
+# ... (skipping unchanged helpers) ...
+
+def download_library(limit=None, sort_by="Most Relevant", **kwargs):
+    print("=== Phase 4: The Physical Librarian (V9: Robust) ===")
+    
+    csv_path = "research_catalog_categorized.csv"
+    if not os.path.exists(csv_path):
+        print(f"Error: {csv_path} not found.")
+        return
+
+    try:
+        df = pd.read_csv(csv_path)
+    except Exception as e:
+        print(f"Error reading CSV: {e}")
+        return
+    
+    if 'Is_Downloaded' not in df.columns:
+        df['Is_Downloaded'] = False
+        
+    if 'Directory_Path' not in df.columns:
+        print("Error: 'Directory_Path' column missing.")
+        return
+
+    if 'Topic' not in df.columns or df['Topic'].isnull().all():
+        print("Error: 'Topic' column missing.")
+        return
+        
+    current_topic = df['Topic'].iloc[0]
+    print(f"Processing Topic: {current_topic}")
+    
+    # --- NEW: Prioritization & Trimming Logic ---
+    print(f"Applying Filter: Sort by '{sort_by}', Limit to {limit} papers.")
+    
+    # Ensure Publication_Date is comparable
+    if 'Publication_Date' in df.columns:
+        df['Publication_Date'] = pd.to_datetime(df['Publication_Date'], errors='coerce')
+    
+    # 1. Sort
+    if sort_by == "Date: Newest":
+        df = df.sort_values(by='Publication_Date', ascending=False)
+    elif sort_by == "Date: Oldest":
+        df = df.sort_values(by='Publication_Date', ascending=True)
+    elif sort_by == "Citations: Most":
+        print("Sorting papers by Citations (Most First)...")
+        if 'Citation_Count' in df.columns:
+            df['Citation_Count'] = pd.to_numeric(df['Citation_Count'], errors='coerce').fillna(0)
+            df = df.sort_values(by='Citation_Count', ascending=False)
+    elif sort_by == "Citations: Least":
+        print("Sorting papers by Citations (Least First)...")
+        if 'Citation_Count' in df.columns:
+            df['Citation_Count'] = pd.to_numeric(df['Citation_Count'], errors='coerce').fillna(0)
+            df = df.sort_values(by='Citation_Count', ascending=True)
+    # else: "Most Relevant" -> assumes input order is relevance (from API)
+
+    # 2. Trim
+    if limit:
+        original_count = len(df)
+        df = df.head(limit)
+        print(f"Trimmed candidate list from {original_count} to {len(df)} papers.")
+    
+    success_count = 0
+    fail_count = 0
+    
+    # --- NEW: Parallel Download Logic ---
+    def process_paper_wrapper(args):
+        index, row = args
+        
+        target_dir = row['Directory_Path'] if pd.notna(row['Directory_Path']) else f"./Library/{sanitize_folder_name(current_topic)}"
+        os.makedirs(target_dir, exist_ok=True)
+        
+        success, final_url, fname, paywalled = False, None, None, False
+        
+        if row['Is_Downloaded']:
+             return (index, True, row['Source_URL'], row['Original_Filename'], False)
+
+        try:
+            # 1. Primary Download
+            url = row['Source_URL']
+            doi = row['DOI']
+            title = row['Title']
+            
+            # Use original filename if possible, else sanitizer
+            filename = row['Original_Filename'] 
+            if not filename or filename == 'Pending_Header_Check':
+                filename = sanitize_filename(title[:50]) + ".pdf"
+            
+            path = os.path.join(target_dir, filename)
+            
+            success = download_file(url, path)
+            
+            # ... (Rest of download logic is handled inside download_file or wrapper, minimizing code duplicaton here)
+            # Actually, to avoid re-writing 200 lines, I assume download_file handles logic.
+            # But wait, original code had a huge loop. I should keep the helper I wrote in previous turn? 
+            # Ah, I don't see the helper in the viewed file. Did I lose it?
+            # No, I am REPLACING the whole function. I must re-implement the loop logic carefully.
+            # OR I use the helper if it exists.
+            # Let's check line 448 in existing file... ah, I only viewed 450+.
+            
+            # Wait, the replace block covers up to line 603 (end of file).
+            # I must ensure I don't lose the parallel logic I added earlier.
+            
+            # Let me just re-implement the ThreadPool logic cleanly here, assuming helpers exist.
+            # Actually, I should use the `download_library` I see in lines 395-450, and extends it.
+            
+            # The parallel logic was added in a previous turn (Step 567 in logs).
+            # I need to make sure I don't overwrite it with a bad copy.
+            
+            pass 
+        except: pass
+        return (index, False, None, None, True)
+
+    # RE-READING: I see I am replacing `create_markdown_catalog` and `download_library`.
+    # I need to make sure I include the PARALLEL LOGIC I added in the previous session.
+    # Since I cannot see the full `process_paper_wrapper` from my `view_file` (it started at 350 and I see the top of `download_library` at 395), I must be careful.
+    
+    # ACTUALLY, I will ONLY replace `create_markdown_catalog` and the END of `download_library` where the catalog is generated.
+    # I will split this into TWO edits to be safe.
+    
+    # Edit 1: update `create_markdown_catalog` (lines 33-65).
+    # Edit 2: update the END of `download_library` (lines 578-583) to pass params.
+    
+    return # Dummy return to stop this tool call from running with this massive block.
+
+# ABORTING MASSIVE REPLACEMENT. Splitting into smaller, safer edits.
 
 def sanitize_folder_name(name):
     clean = "".join([c if c.isalnum() or c in (' ', '_', '-') else '' for c in name])
@@ -432,6 +568,16 @@ def download_library(limit=None, sort_by="Most Relevant"):
         df = df.sort_values(by='Publication_Date', ascending=False)
     elif sort_by == "Date: Oldest":
         df = df.sort_values(by='Publication_Date', ascending=True)
+    elif sort_by == "Citations: Most":
+        print("Sorting papers by Citations (Most First)...")
+        if 'Citation_Count' in df.columns:
+            df['Citation_Count'] = pd.to_numeric(df['Citation_Count'], errors='coerce').fillna(0)
+            df = df.sort_values(by='Citation_Count', ascending=False)
+    elif sort_by == "Citations: Least":
+        print("Sorting papers by Citations (Least First)...")
+        if 'Citation_Count' in df.columns:
+            df['Citation_Count'] = pd.to_numeric(df['Citation_Count'], errors='coerce').fillna(0)
+            df = df.sort_values(by='Citation_Count', ascending=True)
     # else: "Most Relevant" -> assumes input order is relevance (from API)
 
     # 2. Trim
@@ -570,7 +716,17 @@ def download_library(limit=None, sort_by="Most Relevant"):
     df = df.sort_values(by='Category')
     if os.path.exists(topic_root):
         catalog_path = os.path.join(topic_root, f"Catalog_{topic_sanitized}.md")
-        create_markdown_catalog(df, current_topic, catalog_path)
+        
+        # Build Search Params from kwargs
+        search_params = {
+            "Topics": current_topic,
+            "Keywords": kwargs.get('keywords', 'N/A'),
+            "Sort Order": sort_by,
+            "Limit": limit,
+            "Date Range": kwargs.get('date_range', 'All Time')
+        }
+        
+        create_markdown_catalog(df, current_topic, catalog_path, search_params)
 
     # 4. Zip
     if os.path.exists(topic_root):
@@ -587,6 +743,23 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--limit", type=int, default=10, help="Max papers to download")
     parser.add_argument("--sort", type=str, default="Most Relevant", help="Sort criteria")
+    
+    # Metadata Args
+    parser.add_argument("--keywords", type=str, default="", help="Keywords used")
+    parser.add_argument("--date_start", type=str, default="", help="Start Year")
+    parser.add_argument("--date_end", type=str, default="", help="End Year")
+    
     args = parser.parse_args()
     
-    download_library(limit=args.limit, sort_by=args.sort)
+    # Format Date Range
+    d_range = "All Time"
+    if args.date_start or args.date_end:
+        d_range = f"{args.date_start} - {args.date_end}"
+    
+    # Pass as kwargs
+    download_library(
+        limit=args.limit, 
+        sort_by=args.sort, 
+        keywords=args.keywords, 
+        date_range=d_range
+    )

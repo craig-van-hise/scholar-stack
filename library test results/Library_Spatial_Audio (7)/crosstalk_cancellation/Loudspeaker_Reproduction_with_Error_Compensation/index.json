@@ -1,0 +1,107 @@
+[
+  {
+    "Title": "A COMPARISON OF THE PERFORMANCE OF HRTF MODELS IN INVERSE FILTER DESIGN FOR CROSSTALK CANCELLATION",
+    "Authors": "Jacob Hollebon, E. Hamdan, Filippo Maria Fazi",
+    "Filename": "A_COMPARISON_OF_THE_PERFORMANCE_OF_HRTF_MODELS_IN_.pdf",
+    "Description": "Crosstalk cancellation can be used to reproduce binaural audio over loudspeakers without the use of headphones, by using inverse filtering. When designing the inverse filters, a matrix of head-related transfer functions (HRTFs) is modelled and inverted. Often in crosstalk cancellation, a free-field shadowless head model is assumed. For perfect crosstalk cancellation, the modelled HRTFs that are inverted should be identical to the physical HRTFs of the reproduction system. Mismatches between the modelled HRTFs and the physical HRTFs result in errors in the reproduced binaural signals. A range of HRTF models are reviewed and their performance in a standard crosstalk cancellation problem assessed using numerical simulations. The benefits and drawbacks of the various models are discussed and the limitations of the commonly used shadowless head model shown.",
+    "Source_URL": "https://eurasip.org/Proceedings/Eusipco/Eusipco2023/pdfs/0000091.pdf"
+  },
+  {
+    "Title": "Analysis and Experiment on the Limitations of Static and Dynamic Transaural Reproduction with Two Frontal Loudspeakers",
+    "Authors": "Lulu Liu, Bosun Xie",
+    "Filename": "Analysis_and_Experiment_on_the_Limitations_of_Stat.pdf",
+    "Description": "By duplicating the binaural pressures of an actual source, transaural reproduction with two frontal loudspeakers is expected to recreate a virtual source in arbitrary direction. However, experiments indicated that in static transaural reproduction, the perceived virtual source is usually limited to the frontalhorizontal plane. The reasons for this limitation, as guessed, are that, in static reproduction, the dynamic cues for front-back and vertical localisation are incorrect, and the high-frequency spectral cues are unstable with head movement. To validate this hypothesis, the variations of ITD (interaural time difference) caused by head turning in both static and dynamic transaural reproductions are analysed. The results indicate that dynamic reproduction is able to create appropriate low-frequency ITD variations, and the static transaural reproduction is unable to do so. Psychoacoustic experiments are conducted to compare virtual source localisation in static and dynamic reproductions. The results indicate that dynamic reproduction is able to recreate the front, back, and vertical virtual source for low-pass stimuli below 3 kHz, while for full audible bandwidth stimulus, appropriate low-frequency dynamic cue and unstable high-frequency spectral cues in dynamic reproduction result in two splitting virtual sources.",
+    "Source_URL": "http://journals.pan.pl/Content/119919/aoa.2021.136577.pdf"
+  },
+  {
+    "Title": "Binaural rendering technology over loudspeakers and headphones",
+    "Authors": "Dingding Yao, Huaxing Xu, Junfeng Li, Risheng Xia, Yonghong Yan",
+    "Filename": "Binaural_rendering_technology_over_loudspeakers_an.pdf",
+    "Description": "To provide listeners with an immersive listening experience, binaural rendering technology has become an important research topic, especially with the rising prominence of virtual/augmented reality in recent years. In this paper, we introduce our recent works on binaural rendering technology over headphones and loudspeakers. The first work is on crosstalk cancellation (CTC), which is critical for loudspeaker-based binaural rendering. An improved free-field CTC method is first presented, in which the head effects are formulated using an attenuation factor and a phase difference factor. A stochastic robust approximation method is then suggested to further improve its robustness against the perturbation perception caused by the listener's head movement or rotation. The second work is on elevation perception of sound images, which is critical for headphone- and loudspeaker-based binaural rendering methods. By analyzing the elevation-dependent head-related transfer function (HRTF), a parametric elevation control approach is presented in which the key perceptual cues (i.e., spectral peaks and notches) are modeled using digital filters and controlled according to learned rules. The effectiveness and performance of the suggested algorithms are verified by subjective and objective experiments.",
+    "Source_URL": "https://www.jstage.jst.go.jp/article/ast/41/1/41_E19228/_pdf"
+  },
+  {
+    "Title": "The Perceptual Effect of Reflective Surfaces on Acoustic Crosstalk Cancelation Using an 8-Channel Linear Loudspeaker Array",
+    "Authors": "Karim Bahri, Jens Ahrens",
+    "Filename": "The_Perceptual_Effect_of_Reflective_Surfaces_on_Ac.pdf",
+    "Description": NaN,
+    "Source_URL": "https://research.chalmers.se/publication/522058/file/522058_Fulltext.pdf"
+  },
+  {
+    "Title": "Solution Strategies for Linear Inverse Problems in Spatial Audio Signal Processing",
+    "Authors": "Mingsian R. Bai, Chun Hui Chung, Po-Chen Wu, Yi-Hao Chiang, Chun-May Yang",
+    "Filename": "Solution_Strategies_for_Linear_Inverse_Problems_in.pdf",
+    "Description": "The aim of this study was to compare algorithms for solving inverse problems generally encountered in spatial audio signal processing. Tikhonov regularization is typically utilized to solve overdetermined linear systems in which the regularization parameter is selected by the golden section search (GSS) algorithm. For underdetermined problems with sparse solutions, several iterative compressive sampling (CS) methods are suggested as alternatives to traditional convex optimization (CVX) methods that are computationally expensive. The focal underdetermined system solver (FOCUSS), the steepest descent (SD) method, Newton\u2019s (NT) method, and the conjugate gradient (CG) method were developed to solve CS problems more efficiently in this study. These algorithms were compared in terms of problems, including source localization and separation, noise source identification, and analysis and synthesis of sound fields, by using a uniform linear array (ULA), a uniform circular array (UCA), and a random array. The derived results are discussed herein and guidelines for the application of these algorithms are summarized.",
+    "Source_URL": "https://www.mdpi.com/2076-3417/7/6/582/pdf?version=1496711486"
+  },
+  {
+    "Title": "DSP implementation of surround speaker virtualizer for sound bar systems",
+    "Authors": "Nives Kaprocki, Jelena Kova\u010devi\u0107, Kovac Peckai, Miroslav Malko",
+    "Filename": "DSP_implementation_of_surround_speaker_virtualizer.pdf",
+    "Description": "This paper describes one solution for an implementation of the surround speaker virtualization module for a digital signal processor in a sound bar system. The main problem in this system, which consists of a decoder, a renderer and a post-processing module, is complex processing of sound in real-time. In order to achieve real-time execution of these operations and offer customers an affordable product, sound bar system is implemented on an embedded platform. A detailed overview of the system architecture and available resources is given, as the development of modules in an embedded system requires optimal resource usage. Furthermore, numerous challenges and constraints of real-time system programming are presented through the implementation of surround virtualization module, an integral part of the post-processing block. The merits of the proposed architecture are fortified with the measured usage of limited processor resources, and evaluation results confirm that real-time execution of the proposed solution is achieved.",
+    "Source_URL": "https://scindeks-clanci.ceon.rs/data/pdf/1821-3251/2017/1821-32511702086K.pdf"
+  },
+  {
+    "Title": "Design and Implementation Analysis of OSD based Audio Crosstalk Cancellation with Multi-Channel Inputs on DSP Processors",
+    "Authors": "Ch. Sreenivasa Rao, Dhulipalla Venkata Rao, S. Lakshminarayana",
+    "Filename": "Design_and_Implementation_Analysis_of_OSD_based_Au.pdf",
+    "Description": "To overcome the basic system inversion problems in conventional crosstalk cancellation systems, the three channel Optimum Source Distribution (OSD) was developed by Takashi et al., that provides balance between in-phase and out of phase components. The main difficulty in this system is real-time implementation of cross talk cancellation filters on DSP platforms, particularly when filter lengths are very long with system operates on multichannel inputs. This paper discusses the implementation complexities and proposes an efficient approach to reduce the power consumption. It also discusses efficient usage of available processor memory. By utilizing the processor resources and existing frequency domain techniques, this approach would be one of best methods for long filters. The mathematical model, with efficient design for floating point DSP processors, clearly explains the optimization methods at algorithmic and instruction levels. The computational complexity of the proposed method was measured for various multi-channel input sources and the comparison was shown. The results indicate that the proposed method provides efficient computations than existing methods. Keywords: Convolution, Crosstalk Cancellation, Optimal Source Distribution, Overlap Save Method, Uniform Partitioned Convolution",
+    "Source_URL": "https://sciresol.s3.us-east-2.amazonaws.com/IJST/Articles/2015/Issue-5/Article9.pdf"
+  },
+  {
+    "Title": "Implementation Analysis of Binaural Audio Crosstalk Cancellation on Heterogeneous Parallel Computing platforms using Mixed Non-Uniform Partitioned Convolution",
+    "Authors": "Chunduri Sreenivasa Rao, Dhulipalla Venkata Rao, Somayajula Lakshminarayana",
+    "Filename": "Implementation_Analysis_of_Binaural_Audio_Crosstal.pdf",
+    "Description": "As general DSP processors don\u2019t have massive parallel architecture, they are not suitable to implement 3D audio virtual techniques at very long filters due to computational problems. To address these implementation issues of very long filters, an efficient method called Mixed Non-uniform Partitioned Convolution is proposed in this paper for implementing binaural audio crosstalk cancellation on heterogeneous parallel computing platforms. By using massive parallel architecture of heterogeneous platforms, the proposed approach is able to solve computational problems even at filter lengths of 65536 (32-bit floating point). The partitioning scheme followed in this paper is explained in detail to schedule partitions on various compute units of GPU device. The proposed approach was implemented on AMD GPUs using task parallel concept. The instruction level optimization was also provided for complex frequency multiplication and addition using OpenCL. The performance of this approach is compared against the existing techniques proposed by Garcia and Gardener. The cost vs. computational performance tradeoff comparison was given between proposed approach and existing methods. The comparison clearly shows that proposed approach is very efficient at very long filters and requires reasonable cost of implementation in terms of number of compute units. The combination of instruction level and algorithmic level optimizations make the proposed approach more suitable for implementation of not only stereo inputs based audio CTC but also multichannel inputs, particularly at very long filter lengths on parallel computing platforms. Keywords: Crosstalk Cancellation, Heterogeneous Parallel Computing, Mixed Filtering, OpenCL, Partitioned Convolution",
+    "Source_URL": "https://sciresol.s3.us-east-2.amazonaws.com/IJST/Articles/2015/Issue-33/Article6.pdf"
+  },
+  {
+    "Title": "Binaural Reproduction of 22.2 Multichannel Sound with Flat Panel Display-Integrated Loudspeaker Frame for Home Use",
+    "Authors": "Kentaro Matsui, Satoshi Oishi, Takehiro Sugimoto, Satoshi Oode, Yasushige Nakayama, Hiroyuki Okubo, Hiroshi Sato, Koji Mizuno, Yuichi Morita, Shuichi Adachi",
+    "Filename": "Binaural_Reproduction_of_22.2_Multichannel_Sound_w.pdf",
+    "Description": "NHK has developed a 22.2 multichannel sound system for 8K Super Hi-Vision (SHV), an ultra high-definition TV. The system consists of 24 spatially arranged audio channels including two low frequency effect channels for reproducing three-dimensional spatial sound. To respond to various viewing circumstances of SHV in homes, we have also developed several reproduction methods to virtually reproduce 22.2 multichannel sound with fewer loudspeakers. In this paper, we propose binaural reproduction of 22.2 multichannel sound with multiple loudspeakers integrated into a flat panel display, which makes it possible for us to experience 22.2 multichannel sound without installing 24 discrete loudspeakers.",
+    "Source_URL": "https://www.jstage.jst.go.jp/article/itej/68/10/68_J447/_pdf"
+  },
+  {
+    "Title": "Multichannel massive audio processing for a generalized crosstalk cancellation and equalization application using GPUs",
+    "Authors": "Jose A. Belloch, Alberto Gonz\u00e1lez, F. J. Mart\u00ednez-Zald\u00edvar, Antonio M. Vidal",
+    "Filename": "Multichannel_massive_audio_processing_for_a_genera.pdf",
+    "Description": "[EN] Multichannel acoustic signal processing has undergone major development in recent years due to the increased com- plexity of current audio processing applications, which involves the processing of multiple sources, channels, or filters. A gen- eral scenario that appears in this context is the immersive reproduction of binaural audio without the use of headphones, which requires the use of a crosstalk canceler. However, generalized crosstalk cancellation and equalization (GCCE) requires high com- puting capacity, which is a considerable limitation for real-time applications. This paper discusses the design and implementation of all the processing blocks of a multichannel convolution on a GPU for real-time applications. To this end, a very efficient fil- tering method using specific data structures is proposed, which takes advantage of overlap-save filtering and filter fragmentation. It has been shown that, for a real-time application with 22 inputs and 64 outputs, the system is capable of managing 1408 filters of 2048 coefficients with a latency time less than 6 ms. The proposed GPU implementation can be easily adapted to any acoustic environment, demonstrating the validity of these co-processors for managing intensive multichannel audio applications.",
+    "Source_URL": "https://riunet.upv.es/bitstream/10251/38297/1/manuscript_Belloch.pdf"
+  },
+  {
+    "Title": "Loudspeaker distributions suitable for crosstalk cancellers robust to head rotation",
+    "Authors": "Cheolsu Han, Takuma Okamoto, Yukio Iwaya, Y\u00f4iti Suzuki",
+    "Filename": "Loudspeaker_distributions_suitable_for_crosstalk_c.pdf",
+    "Description": NaN,
+    "Source_URL": "https://www.jstage.jst.go.jp/article/ast/33/4/33_E1176/_pdf"
+  },
+  {
+    "Title": "A Study on Sweet Spot of Crosstalk Cancellation Schemes for Sound Rendering Systems",
+    "Authors": "Junghyuck Lee, Sang-Hyo Jeong, Seungsoo Yoo, Iickho Song, Sunyong Kim",
+    "Filename": "A_Study_on_Sweet_Spot_of_Crosstalk_Cancellation_Sc.pdf",
+    "Description": "\ubcf8 \ub17c\ubb38\uc5d0\uc11c\ub294 \uc785\uccb4\uc74c\ud5a5\uc2dc\uc2a4\ud15c\uc744 \uc704\ud55c \ub300\ud45c\uc801\uc778 \uc0c1\ud638\uac04\uc12d\uc81c\uac70 \uae30\ubc95\uc778 \uba38\ub9ac\uc804\ub2ec\ud568\uc218\ub9cc (head related transfer function, HRTF) \uc774\uc6a9\ud55c \uae30\ubc95\uacfc \ub450 \uadc0\uc5d0 \ub3c4\ub2ec\ud558\ub294 \uc18c\ub9ac\uc758 \uc2dc\uac04\ucc28\uc640 \uc138\uae30\ucc28\ub97c (interaural time/intensity difference, ITD\uc640 IID) HRTF\uc640 \ud568\uaed8 \uc774\uc6a9\ud55c \uae30\ubc95\uc758 \uc0c1\ud0dc\uc9c0\uc218\uc640 ITD/IID \uc218\uc900\uc744 \ubcf4\uc774\uace0, \uc774\ub85c\ubd80\ud130 \ub450 \uae30\ubc95\uc758 \uc720\ud6a8\uccad\ucde8\ubc94\uc704\ub97c \ubcf4\uc778\ub2e4. \uc785\uccb4\uc74c\ud5a5\uc2dc\uc2a4\ud15c\uc758 \uc720\ud6a8\uccad\ucde8\ubc94\uc704\ub294 \uccad\ucde8\uc790\uac00 \uc758\ub3c4\ub41c \uc74c\ud5a5\uc758 \uc785\uccb4\uac10\uc744 \uc65c\uace1 \uc5c6\uc774 \ub290\ub084 \uc218 \uc788\ub294 \uacf5\uac04\uc73c\ub85c \ub4f1\uc5ed (equalization zone) \ub610\ub294 sweet spot\uc73c\ub85c\ub3c4 \ubd80\ub978\ub2e4. In this paper, equalization zone of two crosstalk cancellation (CC) schemes, which are the one based on only head related transfer function (HRTF) and the other one based on interaural intensity/time difference (ITD/IID) as well as HRTF is studied. To do this, the condition numbers and ITD/IID levels of two schemes are shown.",
+    "Source_URL": "http://koreascience.or.kr:80/article/JAKO201121538715306.pdf"
+  },
+  {
+    "Title": "A Stereo Crosstalk Cancellation System Based on the Common-Acoustical Pole/Zero Model",
+    "Authors": "Lin Wang, Fuliang Yin, Zhe Chen",
+    "Filename": "A_Stereo_Crosstalk_Cancellation_System_Based_on_th.pdf",
+    "Description": "Crosstalk cancellation plays an important role in displaying binaural signals with loudspeakers. It aims to reproduce binaural signals at a listener's ears via inverting acoustic transfer paths. The crosstalk cancellation filter should be updated in real time according to the head position. This demands high computational efficiency for a crosstalk cancellation algorithm. To reduce the computational cost, this paper proposes a stereo crosstalk cancellation system based on common-acoustical pole/zero (CAPZ) models. Because CAPZ models share one set of common poles and process their zeros individually, the computational complexity of crosstalk cancellation is cut down dramatically. In the proposed method, the acoustic transfer paths from loudspeakers to ears are approximated with CAPZ models, then the crosstalk cancellation filter is designed based on the CAPZ transfer functions. Simulation results demonstrate that, compared to conventional methods, the proposed method can reduce computational cost with comparable crosstalk cancellation performance.",
+    "Source_URL": "https://asp-eurasipjournals.springeropen.com/counter/pdf/10.1155/2010/719197"
+  },
+  {
+    "Title": "Subband Approach to Bandlimited Crosstalk Cancellation System in Spatial Sound Reproduction",
+    "Authors": "Mingsian R. Bai, Chih-Chung Lee",
+    "Filename": "Subband_Approach_to_Bandlimited_Crosstalk_Cancella.pdf",
+    "Description": "Crosstalk cancellation system (CCS) plays a vital role in spatial sound reproduction using multichannel loudspeakers. However, this technique is still not of full-blown use in practical applications due to heavy computation loading. To reduce the computation loading, a bandlimited CCS is presented in this paper on the basis of subband filtering approach. A pseudoquadrature mirror filter (QMF) bank is employed in the implementation of CCS filters which are bandlimited to 6 kHz, where human&#39;s localization is the most sensitive. In addition, a frequency-dependent regularization scheme is adopted in designing the CCS inverse filters. To justify the proposed system, subjective listening experiments were undertaken in an anechoic room. The experiments include two parts: the source localization test and the sound quality test. Analysis of variance (ANOVA) is applied to process the data and assess statistical significance of subjective experiments. The results indicate that the bandlimited CCS performed comparably well as the fullband CCS, whereas the computation loading was reduced by approximately eighty percent.",
+    "Source_URL": "https://asp-eurasipjournals.springeropen.com/counter/pdf/10.1155/2007/71948"
+  },
+  {
+    "Title": "Improved sound separation using three loudspeakers",
+    "Authors": "Jun Yang, Woon\u2010Seng Gan, See-Ee Tan",
+    "Filename": "Improved_sound_separation_using_three_loudspeakers.pdf",
+    "Description": "In a virtual sound imaging system, crosstalk cancellation filters are used to create an effective sweet spot for 3D sound reproduction via multiple loudspeakers. A new 3-channel system is proposed to improve system performance on sound separation. Based on the robustness analysis of a crosstalk canceller, a modified-inverse filter technique is explored and demonstrated using two different examples of symmetric speaker positions. The simulation results indicate that the present system is robust over a wider bandwidth compared to a conventional 2-channel system.",
+    "Source_URL": "https://proceedings.neurips.cc/paper/2020/file/28538c394c36e4d5ea8ff5ad60562a93-Paper.pdf"
+  }
+]

@@ -49,7 +49,7 @@ def get_best_model():
     except:
             return 'models/gemini-1.5-flash'
 
-def cluster_and_categorize(topic, sort_method="Most Relevant", limit=100, no_llm=False):
+def cluster_and_categorize(topic, sort_method="Most Relevant", limit=100, no_llm=False, use_keywords=False):
     print("=== Phase 3: The Smart Architect (Improved Clustering) ===", flush=True)
     print(f"Topic: {topic}")
     print(f"Prioritize By: {sort_method}, Limit: {limit}", flush=True)
@@ -136,9 +136,11 @@ def cluster_and_categorize(topic, sort_method="Most Relevant", limit=100, no_llm
         2. **Cluster**: Group the remaining papers into {cat_count_msg}.
         
         Critical Constraints:
-        1. **No Redundancy**: Do NOT use the words "{topic}" in the category names.
-        2. **Consolidation**: Merge similar topics.
-        3. **Cluster Size**: Every category MUST contain at least 2 papers.
+        1. **STRICTLY FORBIDDEN**: Do NOT use the terms "General", "Miscellaneous", "Overview", "Introduction", "Other", "Collection", "Research".
+        2. **SPECIFICITY**: Use precise technical sub-field names (e.g. "Ambisonic Decoding", "HRTF Interpolation", "Adaptive Filtering").
+        3. **No Redundancy**: Do NOT use the words "{topic}" in the category names.
+        4. **Consolidation**: Merge similar topics.
+        5. **Cluster Size**: Every category MUST contain at least 2 papers.
         
         Output Format:
         Return strictly a JSON object. 
@@ -190,16 +192,17 @@ def cluster_and_categorize(topic, sort_method="Most Relevant", limit=100, no_llm
 
     # 4. Organization
     df['Topic'] = topic
+    
+    # Base Root (Topic Level)
     topic_sanitized = sanitize_folder_name(topic)
-    library_topic_root = f"./Library/{topic_sanitized}"
-    os.makedirs(library_topic_root, exist_ok=True)
+    base_library_root = f"./Library/{topic_sanitized}"
     
     categories_found = set()
     rows_to_drop = []
     df['Directory_Path'] = None
 
     for index, row in df.iterrows():
-        # Robust Lookup: Try DOI first, then Title logic if needed (but DOI is primary)
+        # Robust Lookup
         paper_id = row['DOI'] if pd.notna(row['DOI']) and str(row['DOI']).strip() else row['Title']
         
         # Check taxonomy map
@@ -214,8 +217,32 @@ def cluster_and_categorize(topic, sort_method="Most Relevant", limit=100, no_llm
         df.at[index, 'Category'] = category
         categories_found.add(category)
         
+        # Construct Path
         safe_category = sanitize_folder_name(category)
-        dir_path = os.path.join(library_topic_root, safe_category)
+        
+        # Logic: <Topic>/<Keyword?>/<Category>
+        # Logic: <Topic>/<Keyword?>/<Category>
+        current_root = base_library_root
+        
+        # Use Keywords as Sub-folders?
+        if use_keywords:
+            raw_vertical = row.get('Search_Vertical', 'Unsorted')
+            safe_vertical = sanitize_folder_name(str(raw_vertical))
+            
+            # If the keyword IS the topic, put it in a general folder so it doesn't clutter root
+            # But generally, we treat the Search Vertical as the Level 2 folder.
+            if safe_vertical.lower() == topic_sanitized.lower():
+                 current_root = os.path.join(base_library_root, "_General")
+            else:
+                 current_root = os.path.join(base_library_root, safe_vertical)
+        
+        # Determine Final Directory
+        # Logic: current_root is now <Topic>/<Keyword> (or <Topic> if not using keywords)
+        # We ALWAYS append the Category.
+        # User explicitly requested strict "Library/Topic/Keyword/Category".
+        
+        dir_path = os.path.join(current_root, safe_category)
+            
         os.makedirs(dir_path, exist_ok=True)
         df.at[index, 'Directory_Path'] = dir_path
 
@@ -237,7 +264,7 @@ def cluster_and_categorize(topic, sort_method="Most Relevant", limit=100, no_llm
     else:
         print("Fallback Mode: Papers saved to 'General_Collection'.")
         
-    print(f"Structure ready in '{library_topic_root}/'")
+    print(f"Structure ready in '{base_library_root}/'")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Smart Architect: Cluster and Filter Papers")
@@ -245,7 +272,8 @@ if __name__ == "__main__":
     parser.add_argument("--sort", default="Most Relevant")
     parser.add_argument("--limit", type=int, default=100)
     parser.add_argument("--no_llm", action="store_true")
+    parser.add_argument("--use_keywords", action="store_true")
     args = parser.parse_args()
     
-    cluster_and_categorize(args.topic, args.sort, args.limit, args.no_llm)
+    cluster_and_categorize(args.topic, args.sort, args.limit, args.no_llm, args.use_keywords)
 

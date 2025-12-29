@@ -265,7 +265,9 @@ class ResearchCrawler:
             'Is_Downloaded': False,
             'Source_URL': c['final_url'],
             'DOI': c['doi'],
-            '_Source': c['source_name']
+            '_Source': c['source_name'],
+            'Citation_Count': c.get('citation_count', 0),
+            'Search_Vertical': c.get('search_vertical', 'Unsorted')
         })
         print(f"[Accepted] {c['title'][:60]}...", flush=True)
 
@@ -405,7 +407,7 @@ class ResearchCrawler:
 
         return None
 
-    def execute_openalex_query(self, label, filters, search_query):
+    def execute_openalex_query(self, label, filters, search_query, search_vertical="Unsorted"):
         """Helper to run a specific OpenAlex query strategy with strict quotas."""
         print(f"\n🔎 Executing Strategy: {label}")
         print(f"   Query: search='{search_query}' filter='{filters}'")
@@ -425,7 +427,7 @@ class ResearchCrawler:
                 "filter": filters,
                 "per-page": per_page,
                 "page": current_page,
-                "select": "title,id,publication_year,open_access,authorships,abstract_inverted_index,doi,keywords,concepts"
+                "select": "title,id,publication_year,open_access,authorships,abstract_inverted_index,doi,keywords,concepts,cited_by_count"
             }
             if search_query: params["search"] = search_query
 
@@ -458,7 +460,9 @@ class ResearchCrawler:
                         'doi': item.get('doi', '').replace("https://doi.org/", ""),
                         'url': pdf_url, 
                         'source_name': 'OpenAlex',
-                        'keywords': keywords_text
+                        'keywords': keywords_text,
+                        'citation_count': item.get('cited_by_count', 0),
+                        'search_vertical': search_vertical
                     })
                 
                 # Trust-Based Validation (PRP 9.9.9.1)
@@ -610,7 +614,7 @@ class ResearchCrawler:
             if self.date_end: filters.append(f"publication_year:<{self.year_end+1}")
             filter_str = ",".join(filters)
             
-            self.execute_openalex_query(f"Vertical: {vertical}", filter_str, query)
+            self.execute_openalex_query(f"Vertical: {vertical}", filter_str, query, search_vertical=clean_keyword)
             
             # Stop if global target met (checked inside execute_openalex_query too, but good to check here)
             if len(self.results) >= self.target_count:

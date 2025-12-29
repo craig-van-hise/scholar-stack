@@ -1,0 +1,37 @@
+[
+  {
+    "Title": "THE TIME DOMAIN RESPONSE OF SOME SYSTEMS FOR SOUND REPRODUCTION",
+    "Authors": "P.A. Nelson",
+    "Filename": "THE_TIME_DOMAIN_RESPONSE_OF_SOME_SYSTEMS_FOR_SOUND.pdf",
+    "Description": NaN,
+    "Source_URL": "http://terrano.ucsd.edu/jorge/teaching/mae143a/lectures/3timedomainanalysis.pdf"
+  },
+  {
+    "Title": "AUDITORY HEIGHT PERCEPTION IN CROSS-TALK CANCELLATION USING LOW-ORDER HRTF APPROXIMATION",
+    "Authors": "Gerardine Kearney",
+    "Filename": "AUDITORY_HEIGHT_PERCEPTION_IN_CROSS-TALK_CANCELLAT.pdf",
+    "Description": NaN,
+    "Source_URL": "https://www.york.ac.uk/sadie-project/IASS2016/IASS_Papers/IASS_2016_paper_4.pdf"
+  },
+  {
+    "Title": "EXTENSION OF THE OPTIMAL SOURCE DISTRIBUTION FOR BINAURAL SOUND REPRODUCTION",
+    "Authors": "Toshifumi Takeuchi, P.A. Nelson",
+    "Filename": "EXTENSION_OF_THE_OPTIMAL_SOURCE_DISTRIBUTION_FOR_B.pdf",
+    "Description": NaN,
+    "Source_URL": "https://www.sea-acustica.es/INTERNOISE_2019/Fchrs/Proceedings/1945.pdf"
+  },
+  {
+    "Title": "An Efficient Implementation of Parallel Parametric HRTF Models for Binaural Sound Synthesis in Mobile Multimedia",
+    "Authors": "Jose A. Belloch, Germ\u00e1n Ramos, Jos\u00e9 M. Bad\u00eda, M\u00e1ximo Cobos",
+    "Filename": "An_Efficient_Implementation_of_Parallel_Parametric.pdf",
+    "Description": "The extended use of mobile multimedia devices in applications like gaming, 3D video and audio reproduction, immersive teleconferencing, or virtual and augmented reality, is demanding efficient algorithms and methodologies. All these applications require real-time spatial audio engines with the capability of dealing with intensive signal processing operations while facing a number of constraints related to computational cost, latency and energy consumption. Most mobile multimedia devices include a Graphics Processing Unit (GPU) that is primarily used to accelerate video processing tasks, providing high computational capabilities due to its inherent parallel architecture. This paper describes a scalable parallel implementation of a real-time binaural audio engine for GPU-equipped mobile devices. The engine is based on a set of head-related transfer functions (HRTFs) modelled with a parametric parallel structure, allowing efficient synthesis and interpolation while reducing the size required for HRTF data storage. Several strategies to optimize the GPU implementation are evaluated over a well-known kind of processor present in a wide range of mobile devices. In this context, we analyze both the energy consumption and real-time capabilities of the system by exploring different GPU and CPU configuration alternatives. Moreover, the implementation has been conducted using the OpenCL framework, guarantying the portability of the code.",
+    "Source_URL": "https://ieeexplore.ieee.org/ielx7/6287639/8948470/09028216.pdf"
+  },
+  {
+    "Title": "Experimental Sound Mixing for <i>The Well</i>, a Short Film Made for Tablets",
+    "Authors": "Karen Collins, Ruth Dockwray",
+    "Filename": "Experimental_Sound_Mixing_for_iThe_Welli,_a_Short_.pdf",
+    "Description": "This article presents an overview of the use of binaural recording and experimental headphone mixing for a short film. Drawing loosely on theories of proxemics, the article illustrates how sound mixing can be used to create a unique subjective perspective. In particular, the authors sought to experiment with and to use the peculiarities of stereo headphone mixing and binaural sound to reinforce visual elements of a film designed for horizontal viewing on tablets.",
+    "Source_URL": "http://www.mitpressjournals.org/doi/pdf/10.1162/lmj_a_00996"
+  }
+]

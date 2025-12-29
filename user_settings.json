@@ -1,0 +1,15 @@
+{
+  "topic": "Spatial Audio",
+  "keywords": "crosstalk cancellation",
+  "keyword_logic": "Match Any (OR)",
+  "author": "",
+  "publication": "",
+  "count": 10,
+  "sort_method": "Date: Newest",
+  "auto_folders": true,
+  "use_keywords_subfolders": true,
+  "use_start_date": false,
+  "use_end_date": false,
+  "date_start": null,
+  "date_end": null
+}

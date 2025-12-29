@@ -1,0 +1,44 @@
+[
+  {
+    "Title": "Spatial Sound Rendering \u2013 A Survey",
+    "Authors": "Eftychia Lakka, Athanasios G. Malamos, Konstantinos Pavlakis, Andrew Ware",
+    "Filename": "Spatial_Sound_Rendering_\u2013_A_Survey.pdf",
+    "Description": "Simulating propagation of sound and audio rendering can improve the sense of realism and the immersion both in complex acoustic environments and dynamic virtual scenes. In studies of sound auralization, the focus has always been on room acoustics modeling, but most of the same methods are also applicable in the construction of virtual environments such as those developed to facilitate computer gaming, cognitive research, and simulated training scenarios. This paper is a review of state-of-the-art techniques that are based on acoustic principles that apply not only to real rooms but also in 3D virtual environments. The paper also highlights the need to expand the field of immersive sound in a web based browsing environment, because, despite the interest and many benefits, few developments seem to have taken place within this context. Moreover, the paper includes a list of the most effective algorithms used for modelling spatial sound propagation and reports their advantages and disadvantages. Finally, the paper emphasizes in the evaluation of these proposed works.",
+    "Source_URL": "https://www.open-access.bcu.ac.uk/13207/1/colombo_geometry_reduction_submission.pdf"
+  },
+  {
+    "Title": "Spatial Audio for Soundscape Design: Recording and Reproduction",
+    "Authors": "Joo Young Hong, Jianjun He, Bhan Lam, Rishabh Gupta, Woon\u2010Seng Gan",
+    "Filename": "Spatial_Audio_for_Soundscape_Design_Recording_and_.pdf",
+    "Description": "With the advancement of spatial audio technologies, in both recording and reproduction, we are seeing more applications that incorporate 3D sound to create an immersive aural experience. Soundscape design and evaluation for urban planning can now tap into the extensive spatial audio tools for sound capture and 3D sound rendering over headphones and speaker arrays. In this paper, we outline a list of available state-of-the-art spatial audio recording techniques and devices, spatial audio physical and perceptual reproduction techniques, emerging spatial audio techniques for virtual and augmented reality, followed by a discussion on the degree of perceptual accuracy of recording and reproduction techniques in representing the acoustic environment.",
+    "Source_URL": "https://www.mdpi.com/2076-3417/7/6/627/pdf?version=1497700319"
+  },
+  {
+    "Title": "Analysis of CPU and GPU implementations of convolution reverb effect",
+    "Authors": "Marko Misic, Dusan Nikolov, Milo Toma\u0161evi\u0107",
+    "Filename": "Analysis_of_CPU_and_GPU_implementations_of_convolu.pdf",
+    "Description": "Rapid development of modern central processing units (CPUs) and graphics processing units (GPUs) has allowed a significant increase in computing power for different engineering applications. Audio signal processing is an example of such a computationally demanding application. Fast Fourier Transform (FFT) is often a core part of these processing algorithms, and it is efficiently implemented on the CPUs and GPUs through available libraries. In this paper, we present an implementation of the convolution reverb effect using OpenMP and FFTW library on the CPU, and CUDA and cuFFT library on the GPU. Implemented effect is tested with the set of four different audio signals and ten impulse responses of different lengths. We observed speedups in the range of 2 to 3 times over CPU implementation. The results of the analysis are briefly discussed with emphasis on the benefits and drawbacks of using GPUs in such an application.",
+    "Source_URL": "https://scindeks-clanci.ceon.rs/data/pdf/1821-3251/2016/1821-32511602121M.pdf"
+  },
+  {
+    "Title": "Clean Audio for TV broadcast: An Object-Based Approach for Hearing-Impaired Viewers",
+    "Authors": "Ben Shirley, Rob Oldfield",
+    "Filename": "Clean_Audio_for_TV_broadcast_An_Object-Based_Appro.pdf",
+    "Description": "As the percentage of the population with hearing loss increases, broadcasters are receiving more complaints about the difficulty in understanding dialog in the presence of background sound and music. This article explores these issues, reviews previously proposed solutions, and presents an object-based approach that can be implemented within MPEG-H to give listeners control of their audio mix. An object-based approach to clean audio, combined with methods to isolate sounds that are important to the narrative and meaning of a broadcast has the potential to enable users to have complete control of the relative levels of all aspects of audio from TV broadcast. This approach was demonstrated at the University of Salford campus in 2013.",
+    "Source_URL": "https://ceur-ws.org/Vol-2423/DataTV2019_paper_1.pdf"
+  },
+  {
+    "Title": "A Unified Approach To Numerical Auditory Scene Synthesis Using Loudspeaker Arrays",
+    "Authors": "Joshua Atkins, Ismael Nawfal, Daniele Giacobello",
+    "Filename": "A_Unified_Approach_To_Numerical_Auditory_Scene_Syn.pdf",
+    "Description": "Publication in the conference proceedings of EUSIPCO, Lisbon, Portugal, 2014",
+    "Source_URL": "https://zenodo.org/records/44186/files/1569925705.pdf"
+  },
+  {
+    "Title": "The Perceived Performance of Spatial Audio for Teleconferencing",
+    "Authors": "Evans Michael",
+    "Filename": "The_Perceived_Performance_of_Spatial_Audio_for_Tel.pdf",
+    "Description": "(DPhil Thesis, University of York, 1997) Modern teleconference applications and services attempt to make communication between participants at remote sites more effective by presenting information in a manner which is perceived as much like natural, physical interaction as possible. Spatial audio - reproducing sound so that it is perceived as emanating from meaningful positions in space - is a technology which has the potential to increase this perceptual realism, or Telepresence. Spatialised sound can be created by using an array of loudspeakers to simulate a remote or virtual sound field across a listening space, or by ensuring that appropriate sound localisation cues are present in the signals detected at the ears. However, in telecommunications the unambiguous, comfortable and accurate transmission of speech is of primary importance. Therefore, it is critical that any additional perceptual realism afforded by the integration of spatial audio into teleconferencing systems does not compromise the perceived performance of the systems in terms of participants\u2019 understanding of the words being conveyed. This thesis uses formal subjective testing methods to verify that the spatial reproduction of speech does not compromise perceived performance relative to non-spatialised reproduction. Indeed, under teleconference conditions, where the primary speech stimulus may be occluded by additional voices or by peripheral noise or vocal babble, spatialisation has been found to yield significant improvements in the performance as perceived by listeners. Such improvements are demonstrated for speech spatialised using ambisonic techniques, and also for spatial audio created using a novel perceptual synthesis technique based on a new continuous functional analysis of directional hearing measurements using surface spherical harmonics. The thesis consists of a comprehensive introduction to teleconferencing and the complementary issues of sound localisation and spatialisation together with a description of the physical measurements, mathematical modelling and subjective testing carried out in this research. Conclusions and suggestions for future work are also made.",
+    "Source_URL": "https://figshare.com/articles/thesis/The_Perceived_Performance_of_Spatial_Audio_for_Teleconferencing/1263856/1/files/1829213.pdf"
+  }
+]

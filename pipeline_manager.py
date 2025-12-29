@@ -6,7 +6,8 @@ import shutil
 
 def run_full_pipeline(topic, keywords=None, author=None, publication=None, 
                       date_start=None, date_end=None, sites=None, count=10, 
-                      sort_method="Most Relevant", google_api_key=None, keyword_logic='any'):
+                      sort_method="Most Relevant", google_api_key=None, keyword_logic='any',
+                      auto_folders=True, use_keywords=False):
     """
     Orchestrates the full research pipeline in an isolated temporary directory.
     Yields log lines for real-time UI updates.
@@ -88,6 +89,12 @@ def run_full_pipeline(topic, keywords=None, author=None, publication=None,
             "--limit", str(count)
         ]
         
+        if not auto_folders:
+            cluster_cmd.append("--no_llm")
+        
+        if use_keywords:
+            cluster_cmd.append("--use_keywords")
+        
         process = subprocess.Popen(
             cluster_cmd, 
             cwd=temp_dir,
@@ -115,6 +122,15 @@ def run_full_pipeline(topic, keywords=None, author=None, publication=None,
             "--limit", str(count),
             "--sort", sort_method
         ]
+        
+        # Pass metadata strings
+        if keywords:
+            download_cmd.extend(["--keywords", keywords])
+            
+        if date_start:
+            download_cmd.extend(["--date_start", str(date_start)])
+        if date_end:
+            download_cmd.extend(["--date_end", str(date_end)])
         
         process = subprocess.Popen(
             download_cmd, 

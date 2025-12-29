@@ -3,10 +3,103 @@ import os
 import sys
 import datetime
 import shutil
+import pandas as pd
 from pipeline_manager import run_full_pipeline
 from drive_manager import DriveManager
 from auth_manager import get_login_url, get_token_from_code, get_user_info
+import json
 
+SETTINGS_FILE = "user_settings.json"
+HISTORY_FILE = "search_history.json"
+
+def load_settings():
+    if os.path.exists(SETTINGS_FILE):
+        try:
+            with open(SETTINGS_FILE, "r") as f:
+                return json.load(f)
+        except: return {}
+    return {}
+
+def save_settings(settings):
+    try:
+        # Convert dates to str for JSON
+        serializable = {}
+        for k, v in settings.items():
+            if isinstance(v, (datetime.date, datetime.datetime)):
+                serializable[k] = v.isoformat()
+            else:
+                serializable[k] = v
+        with open(SETTINGS_FILE, "w") as f:
+            json.dump(serializable, f, indent=2)
+    except Exception as e:
+        print(f"Error saving settings: {e}")
+
+def save_history(settings):
+    try:
+        entry = settings.copy()
+        entry['timestamp'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        
+        # Convert dates
+        for k, v in entry.items():
+            if isinstance(v, (datetime.date, datetime.datetime)):
+                entry[k] = v.isoformat()
+        
+        history = []
+        if os.path.exists(HISTORY_FILE):
+            with open(HISTORY_FILE, "r") as f:
+                history = json.load(f)
+        
+        history.insert(0, entry) # Newest first
+        history = history[:50] # Keep last 50
+        
+        with open(HISTORY_FILE, "w") as f:
+            json.dump(history, f, indent=2)
+    except Exception as e:
+        print(f"Error saving history: {e}")
+
+def load_history():
+    if os.path.exists(HISTORY_FILE):
+        try:
+            with open(HISTORY_FILE, "r") as f:
+                return pd.DataFrame(json.load(f))
+        except: return pd.DataFrame()
+    return pd.DataFrame()
+
+@st.dialog("Search History", width="large")
+def search_history_modal():
+    st.write("Select a row to load its settings.")
+    df = load_history()
+    
+    if df.empty:
+        st.info("No history found.")
+        return
+
+    # Modern Selection API
+    event = st.dataframe(
+        df,
+        use_container_width=True,
+        hide_index=True,
+        on_select="rerun",
+        selection_mode="single-row",
+        height=600
+    )
+    
+    if len(event.selection.rows) > 0:
+        idx = event.selection.rows[0]
+        selected_row = df.iloc[idx].to_dict()
+        
+        # Restore Dates
+        if 'date_start' in selected_row and selected_row['date_start']:
+            try: selected_row['date_start'] = datetime.date.fromisoformat(selected_row['date_start'])
+            except: pass
+        if 'date_end' in selected_row and selected_row['date_end']:
+            try: selected_row['date_end'] = datetime.date.fromisoformat(selected_row['date_end'])
+            except: pass
+            
+        save_settings(selected_row)
+        st.toast("Settings Loaded from History! Reloading...", icon="✅")
+        st.rerun()
+        
 st.set_page_config(
     page_title="ScholarStack",
     page_icon="📚",
@@ -151,6 +244,10 @@ if st.session_state.pipeline_run and st.session_state.zip_path and os.path.exist
 
 # --- Sidebar ---
 with st.sidebar:
+    if st.button("📜 View Search History", use_container_width=True):
+        search_history_modal()
+    st.divider()
+
     st.header("Research Parameters")
     
     if st.session_state.recent_topics:
@@ -163,7 +260,40 @@ with st.sidebar:
             st.session_state.recent_topics = []
             st.rerun()
 
-    default_topic = st.session_state.get('selected_topic', "")
+    # --- Load Settings ---
+    saved = load_settings()    
+    
+    # Defaults logic
+    def get_setting(key, default):
+        # Prefer session state if set (from buttons), else saved, else default
+        return saved.get(key, default)
+
+    default_topic = st.session_state.get('selected_topic', get_setting('topic', ""))
+    default_keywords = get_setting('keywords', "")
+    
+    # Logic Map for Radio Index
+    logic_saved = get_setting('keyword_logic', 'Match Any (OR)')
+    logic_idx = 0 if "Any" in logic_saved else 1
+    
+    default_author = get_setting('author', "")
+    default_pub = get_setting('publication', "")
+    default_count = get_setting('count', 10)
+    
+    sort_saved = get_setting('sort_method', "Most Relevant")
+    sort_opts = ["Most Relevant", "Date: Newest", "Date: Oldest", "Citations: Most", "Citations: Least"]
+    try: sort_idx = sort_opts.index(sort_saved)
+    except: sort_idx = 0
+    
+    auto_saved = get_setting('auto_folders', True)
+    key_sub_saved = get_setting('use_keywords_subfolders', False)
+    
+    # Dates
+    use_start_saved = get_setting('use_start_date', False)
+    use_end_saved = get_setting('use_end_date', False)
+    try: d_start_saved = datetime.date.fromisoformat(get_setting('date_start', "2023-01-01"))
+    except: d_start_saved = datetime.date.today() - datetime.timedelta(days=365*2)
+    try: d_end_saved = datetime.date.fromisoformat(get_setting('date_end', "2025-01-01"))
+    except: d_end_saved = datetime.date.today()
     
     # REVERTED: Back to standard text_input
     topic = st.text_input(
@@ -173,17 +303,18 @@ with st.sidebar:
         key="topic_input_std"
     )
     
-    # REVERTED: Back to standard text_input
     keywords = st.text_input(
         "Additional Keywords (Comma-separated)", 
+        value=default_keywords,
         placeholder="e.g., crosstalk cancellation, binaural synthesis",
         key="keywords_input_std"
     )
 
+
     keyword_logic = st.radio(
         "Keyword Logic",
         options=["Match Any (OR)", "Match All (AND)"],
-        index=0,
+        index=logic_idx,
         horizontal=True,
         help="Choose 'Match Any' to find papers containing ANY of the comma-separated keywords. Choose 'Match All' to find papers containing ALL of them."
     )
@@ -191,18 +322,17 @@ with st.sidebar:
     logic_val = "any" if "Any" in keyword_logic else "all"
     
     with st.expander("Advanced Filters"):
-        author = st.text_input("Author", placeholder="e.g., Yann LeCun", key="author_input")
-        publication = st.text_input("Publication/Venue", placeholder="e.g., ICASSP", key="pub_input")
+        author = st.text_input("Author", value=default_author, placeholder="e.g., Yann LeCun", key="author_input")
+        publication = st.text_input("Publication/Venue", value=default_pub, placeholder="e.g., ICASSP", key="pub_input")
         
         st.write("Date Range:")
         col_d1, col_d2 = st.columns(2)
-        use_start_date = st.checkbox("Start Date", value=True)
-        use_end_date = st.checkbox("End Date", value=True)
+        use_start_date = st.checkbox("Start Date", value=use_start_saved)
+        use_end_date = st.checkbox("End Date", value=use_end_saved)
         today = datetime.date.today()
-        default_start = today - datetime.timedelta(days=365*2)
         
-        d_start_val = st.date_input("From", value=default_start, max_value=today) if use_start_date else None
-        d_end_val = st.date_input("To", value=today, max_value=today) if use_end_date else None
+        d_start_val = st.date_input("From", value=d_start_saved, max_value=today) if use_start_date else None
+        d_end_val = st.date_input("To", value=d_end_saved, max_value=today) if use_end_date else None
         
         all_sites = st.checkbox("Select All Sources", value=True)
         site_options = ["ArXiv", "Scholar", "Semantic Scholar", "CORE", "DOAJ"]
@@ -210,24 +340,24 @@ with st.sidebar:
         selected_sites_labels = site_options if all_sites else [s for s in site_options if st.checkbox(s, value=True)]
         selected_sites = [site_map[label] for label in selected_sites_labels]
 
-    count = st.number_input("Target Paper Count", min_value=1, max_value=200, value=10)
+    count = st.number_input("Target Paper Count", min_value=1, max_value=1000, value=default_count)
     
     sort_method = st.radio(
         "Prioritize By",
-        options=["Most Relevant", "Date: Newest", "Date: Oldest"],
-        index=0,
+        options=sort_opts,
+        index=sort_idx,
         help="Decides which papers to keep when trimming the list to your Target Count."
     )
     
+    st.write("Organization:")
+    col_org1, col_org2 = st.columns(2)
+    auto_folders = col_org1.checkbox("Enable AI Auto-Categorization", value=auto_saved, help="Use LLM to sort papers into sub-folders.")
+    use_keywords_subfolders = col_org2.checkbox("Use Keywords as Sub-folders", value=key_sub_saved, help="Create a parent folder for each Search Term/Keyword.")
+    
     st.divider()
     
-    st.header("Settings")
-    # google_api_key = st.text_input("Gemini API Key (Optional)", type="password", help="Required only for clustering stage")
-    # if google_api_key:
-    #     os.environ["GOOGLE_API_KEY"] = google_api_key
+    # Removed Settings Section as requested
     user_api_key = os.getenv("GOOGLE_API_KEY")
-    
-    st.divider()
     
     start_btn = st.button("🚀 Start Research Mission", type="primary")
 
@@ -247,6 +377,26 @@ if start_btn:
         if topic not in st.session_state.recent_topics:
             st.session_state.recent_topics.insert(0, topic)
             if len(st.session_state.recent_topics) > 5: st.session_state.recent_topics.pop()
+        
+        # --- Persistence & History ---
+        current_settings = {
+            "topic": topic,
+            "keywords": keywords,
+            "keyword_logic": keyword_logic,
+            "author": author,
+            "publication": publication,
+            "count": count,
+            "sort_method": sort_method,
+            "auto_folders": auto_folders,
+            "use_keywords_subfolders": use_keywords_subfolders,
+            "use_start_date": use_start_date,
+            "use_end_date": use_end_date,
+            "date_start": d_start_val,
+            "date_end": d_end_val
+        }
+        save_settings(current_settings)
+        save_history(current_settings)
+        # -----------------------------
         
         st.subheader("📡 Mission Control Log")
         log_container = st.empty()
@@ -271,7 +421,9 @@ if start_btn:
                 sites=selected_sites,
                 count=count,
                 sort_method=sort_method,
-                google_api_key=api_key_to_use
+                google_api_key=api_key_to_use,
+                auto_folders=auto_folders,
+                use_keywords=use_keywords_subfolders
             )
             
             final_zip_path = None
