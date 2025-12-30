@@ -7,11 +7,32 @@
     "Source_URL": "https://periodicos.unespar.edu.br/vortex/article/download/9752/6723"
   },
   {
-    "Title": "Autonomous Technology for 2.1 Channel Audio Systems",
-    "Authors": "Shu-Nung Yao, Changwei Huang",
-    "Filename": "Autonomous_Technology_for_2.1_Channel_Audio_System.pdf",
-    "Description": "During the COVID-19 pandemic, smart home requirements have shifted toward entertainment at home. The purpose of this research project was therefore to develop a robotic audio system for home automation. High-end audio systems normally refer to multichannel home theaters. Although multichannel audio systems enable people to enjoy surround sound as they do at the cinema, stereo audio systems have been popularly used since the 1980s. The major shortcoming of a stereo audio system is its narrow listening area. If listeners are out of the area, the system has difficulty providing a stable sound field. This is because of the head-shadow effect blocking the high-frequency sound. The proposed system, by integrating computer vision and robotics, can track the head movement of a user and adjust the directions of loudspeakers, thereby helping the sound wave travel through the air. Unlike previous studies, in which only a diminutive scenario was built, in this work, the idea was applied to a commercial 2.1 audio system, and listening tests were conducted. The theory and the simulation coincide with the experimental results. The approximate rate of audio quality improvement is 31%. The experimental results are encouraging, especially for high-pitched music.",
-    "Source_URL": "https://www.mdpi.com/2079-9292/11/3/339/pdf?version=1642930959"
+    "Title": "Near-field source reproduction in large loudspeaker arrays",
+    "Authors": "Laurent Simon, Stefan Klockgether",
+    "Filename": "Near-field_source_reproduction_in_large_loudspeake.pdf",
+    "Description": "Spatial decomposition techniques can help to compensate for some of the limitations of higher order Ambisonics (HOA).Compared to HOA, higher order spatial impulse response rendering (HO-SIRR) has proven to substantially increase the sweet spot of a simulated space.For HO-SIRR-simulated scenes, it has also been shown that the performance of hearing aid beamformers is closer to the performance in real acoustic environments, and that interaural time and level differences are more similar to those recorded with an artificial head (KEMAR) in the original space than with a simulation based on simple HOA.However, with spatial decomposition techniques, it is more difficult to simulate sources at various distances, especially when trying to simulate focused sources within a loudspeaker array.In this presentation, we describe a near-field source rendering technique.HOA and hearing aid recordings were made in a reference room.The method presented in this paper was compared to HOA and HO-SIRR methods in a sound reproduction room, with regard to direct-toreverberant ratio (DRR), coherence, and performance of the hearing aid beamformer.",
+    "Source_URL": "https://dael.euracoustics.org/confs/fa2023/data/articles/000830.pdf"
+  },
+  {
+    "Title": "FULL REALITY SURROUND SOUND - THE CHALLENGE OF THE FUTURE",
+    "Authors": "DG MALHAM",
+    "Filename": "FULL_REALITY_SURROUND_SOUND_-_THE_CHALLENGE_OF_THE.pdf",
+    "Description": NaN,
+    "Source_URL": "https://filmaker.com/papers/RM-AES28Swed-Recording.pdf"
+  },
+  {
+    "Title": "THE TIME DOMAIN RESPONSE OF SOME SYSTEMS FOR SOUND REPRODUCTION",
+    "Authors": "P.A. Nelson",
+    "Filename": "THE_TIME_DOMAIN_RESPONSE_OF_SOME_SYSTEMS_FOR_SOUND.pdf",
+    "Description": NaN,
+    "Source_URL": "https://www.denso-ten.com/business/technicaljournal/pdf/18-3.pdf"
+  },
+  {
+    "Title": "The Effects of Individualized Binaural Room Transfer Functions for Personal Sound Zones",
+    "Authors": "Yue Qiao, Edgar Choueiri",
+    "Filename": "The_Effects_of_Individualized_Binaural_Room_Transf.pdf",
+    "Description": "The extent to which the performance of personal sound zone (PSZ) reproduction systems is impacted by the individualization of Binaural Room Transfer Functions (BRTFs) and the coupling between the listeners' BRTFs was investigated experimentally.Such knowledge can be valuable for deriving rules for the design of high-performance, robust PSZ systems.The performance of a PSZ system consisting of eight frontal mid-range loudspeakers was objectively evaluated with PSZ filters designed using individualized BRTFs of a human listener and generic ones measured from a mannequin head, in terms of Inter-Zone Isolation, Inter-Program Isolation, and robustness against slight head misalignments.It was found that when no misalignments were introduced, Inter-Zone Isolation and Inter-Program Isolation are improved by an average of around 4 dB at all frequencies between 200 and 7,000 Hz by the individualized filters, compared to the generic ones.With constrained head misalignments, the robustness of both filters decreases as the frequency increases, and although the individualized filters maintain higher performance, their robustness above 2 kHz is lower than that of the generic ones.The evaluation also reveals an inter-listener BRTF coupling effect and a detrimental impact on the performance for both listeners when a single listener's BRTF is mismatched.",
+    "Source_URL": "https://bridgoon97.github.io/assets/pdf/Qiao_AES152_slides.pdf"
   },
   {
     "Title": "Design, Control, and Evaluation of Mixed-Order, Compact Spherical Loudspeaker Arrays",
@@ -26,19 +47,5 @@
     "Filename": "SCaLAr_\u2013_A_surrounding_spherical_cap_loudspeaker_a.pdf",
     "Description": "Introduction : Surrounding spherical loudspeaker arrays facilitate the application of various spatial audio reproduction methods and can be used for a broad range of acoustic measurements and perceptual evaluations. Methods : Installed in an anechoic chamber, the design and implementation of such an array of 68 coaxial loudspeakers, sampling a spherical cap with a radius of 1.35 m on an equal-area grid, is presented. A network-based audio backbone enables low-latency signal transmission with low-noise amplifiers providing a high signal-to-noise ratio. To address batch-to-batch variations, the loudspeaker transfer functions were equalised by individually designed 512-taps finite impulse response filters. Time delays and corresponding level adjustments further helped to minimise radial mounting imperfections. Results : The equalised loudspeaker transfer functions measured under ideal conditions and when mounted, their directivity patterns, and in-situ background noise levels satisfy key criteria towards applicability. Advantages and shortcomings of the selected decoders for panning-based techniques, as well as the influence of loudspeaker positioning errors, are analysed in terms of simulated performance metrics. An evaluation of the achievable channel separation allows deriving recommendations of feasible subset layouts for loudspeaker-based binaural reproduction. Conclusion : The combination of electroacoustic properties, simulated sound field synthesis performance and measured channel separation classifies the system as suitable for its target applications.",
     "Source_URL": "https://acta-acustica.edpsciences.org/articles/aacus/pdf/2020/05/aacus200030.pdf"
-  },
-  {
-    "Title": "Sound Source and Loudspeaker Base Angle Dependency of Phantom Image Elevation Effect",
-    "Authors": "Hyunkook Lee",
-    "Filename": "Sound_Source_and_Loudspeaker_Base_Angle_Dependency.pdf",
-    "Description": "Previous research showed that when identical noise signals are presented from two loudspeakers equidistant from the listener, the resulting phantom image is perceived as being elevated in the median plane. In this study, listening tests used eleven natural sources and four noise sources with different spectral and temporal characteristics reproduced with seven loudspeaker base angles between 0\u00b0 and 360\u00b0. While the degree of perceived elevation depends on the base angle of the loudspeakers, the spectral and temporal characteristics of the sound source also play a significant role in determining perceived elevation. Results generally suggest that the effect is stronger for sources that have a transient nature and a flat frequency spectrum as compared to continuous and low-frequency sources. It is proposed that the perceived degree of elevation is determined by a relative cue related to the spectral energy distribution at high frequencies and also by an absolute cue associated with the acoustic crosstalk and torso reflections at low frequencies. A novel hypothesis about the role of acoustic crosstalk and torso reflection at low frequencies is explored. At frequencies below 3 kHz, the brain might use the first notch in the ear-input spectrum, which is produced by the combination of acoustic crosstalk and torso reflection, as a cue for localizing a phantom source at an elevated position in the median plane. These results may prove useful for 3D sound panning, recording, and mixing without elevated speakers.",
-    "Source_URL": "https://scispace.com/pdf/head-related-transfer-function-selection-using-neural-2y5d6dl5ev.pdf"
-  },
-  {
-    "Title": "Influence of height-channel contents on enhancing spatial impressions through virtually elevated loudspeaker",
-    "Authors": "Sung\u2010Young Kim",
-    "Filename": "Influence_of_height-channel_contents_on_enhancing_.pdf",
-    "Description": "Reproducing early reflections related to ``heigh' information through elevated loudspeakers delivers enhanced presence of auditory images and integrates with a three-dimensional visual content homogeneously. Nonetheless, it is practically difficult for consumers to place loudspeakers required for the height-channel reproduction in a listening room. To overcome this limitation, many academic or commercial institutions propose various methods that render vertical sound images and reproduce them with smaller number of loudspeakers that are typically located in the horizontal plane. The rendered image then could deliver vertically extended impression of a sound field, which is likely related to listeners' perception of enhanced presence. To better understand this relationship, this paper investigated idiosyncratic difference between one surround sound field with actual height channels and another with virtually elevated channels. The elicitation result revealed that listeners used four salient attributes - ASW, LEV, Powerfulness, and Clarity - to describe the difference. The result implicated that perceived magnitudes of those percepts were accounted for by a physical parameter, correlation coefficient between the elevated signal and the loudspeaker signal that is to feed to the closest loudspeaker in the horizontal plane.",
-    "Source_URL": "https://www.ica2013montreal.org/Proceedings/mss/055053_1.pdf"
   }
 ]

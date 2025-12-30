@@ -1,10 +1,10 @@
 {
   "topic": "Spatial Audio",
-  "keywords": "crosstalk cancellation",
+  "keywords": "crosstalk cancellation, personal sound zones",
   "keyword_logic": "Match Any (OR)",
   "author": "",
   "publication": "",
-  "count": 10,
+  "count": 50,
   "sort_method": "Date: Newest",
   "auto_folders": true,
   "use_keywords_subfolders": true,

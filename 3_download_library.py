@@ -528,7 +528,7 @@ def download_file(url, local_path):
             
     return False
 
-def download_library(limit=None, sort_by="Most Relevant"):
+def download_library(limit=None, sort_by="Most Relevant", **kwargs):
     print("=== Phase 4: The Physical Librarian (V9: Robust) ===")
     
     csv_path = "research_catalog_categorized.csv"
@@ -697,18 +697,36 @@ def download_library(limit=None, sort_by="Most Relevant"):
                 json.dump(index_data, f, indent=2)
 
     # 2. Cleanup Empty Folders
+    topic_sanitized = sanitize_folder_name(current_topic)
+    topic_root = os.path.join("./Library", topic_sanitized)
+
     print("Cleaning up target folders...")
+    # 1. Clean Leaf Folders (Categories)
     for folder_path in unique_paths:
         if not os.path.exists(folder_path): continue
         try:
             files = os.listdir(folder_path)
             has_pdf = any(f.lower().endswith('.pdf') for f in files)
+            # If no PDFs, assume failed category -> nuke it
             if not has_pdf:
                 shutil.rmtree(folder_path)
         except Exception: pass
 
-    topic_sanitized = sanitize_folder_name(current_topic)
-    topic_root = os.path.join("./Library", topic_sanitized)
+    # 2. Clean Empty Parents (Keywords)
+    # Walk bottom-up
+    if os.path.exists(topic_root):
+        for root, dirs, files in os.walk(topic_root, topdown=False):
+            # Ignore root itself
+            if root == topic_root: continue
+            
+            # Check if empty or only .DS_Store
+            clean_files = [f for f in files if f != ".DS_Store"]
+            if not clean_files and not dirs:
+                try:
+                     shutil.rmtree(root)
+                     print(f"Removed empty folder: {os.path.basename(root)}")
+                except: pass
+
     zip_name = f"Library_{topic_sanitized}"
     
     # 3. Catalog (BEFORE Zip)

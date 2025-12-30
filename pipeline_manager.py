@@ -36,10 +36,12 @@ def run_full_pipeline(topic, keywords=None, author=None, publication=None,
         # --- Phase 1: Search ---
         yield f"--- Starting Phase 1: Search (Topic: {topic}) ---"
         
+        # Buffer the search count to account for Phase 2 filtering/deduplication
+        buffered_count = int(int(count) * 1.5) + 5
         search_cmd = [
             sys.executable, script_1,
             "--topic", topic,
-            "--count", str(count)
+            "--count", str(buffered_count)
         ]
         
         if keywords:

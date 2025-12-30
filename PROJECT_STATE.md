@@ -1,60 +1,40 @@
 # Project Status Report
 
-**Date:** 2025-12-28
-**Status:** Operational / Stable
-**Current Phase:** Search Optimization & Alert System Implementation
+**Date:** 2025-12-29
+**Status:** Operational / Polished
+**Current Phase:** Persistence & User Experience Optimization
 
 ## Executive Summary
-**ScholarStack** (formerly Universal Research Librarian) has been updated with parallelized search capabilities and refined filtering logic to handle high-volume scraping. The immediate focus is resolving search bottlenecks caused by paywalls and implementing a "Scholar-Alert" email notification system.
+**ScholarStack** has reached a high level of usability and customization. We have implemented **Search Persistence** (remembering user settings) and a **Search History Modal** that allows users to reload past missions with one click. The AI Taxonomy has been rigorously improved to forbid generic categories, ensuring deep technical clustering.
 
 ## Implemented Architecture
 
-### 1. The Omni-Search Module (`1_search_omni.py`) (V10)
-*   **Parallel Processing:** Uses `ThreadPoolExecutor` to check Unpaywall accessibility for 20+ papers concurrently, significantly reducing wait times.
-*   **Recall Optimization:** Removed redundant client-side keyword filtering. The system now trusts the Search API's relevance (Full Text) even if metadata abstracts are missing, resolving the "Low Yield" issue.
-*   **Speed Optimization:** Enabled `openAccessPdf` server-side filtering for Semantic Scholar to eliminate useless checks on paywalled papers.
-*   **Logic Toggle:** User can now choose between "Match Any" (OR) and "Match All" (AND) keyword logic.
+### 1. The Omni-Search Module (`1_search_omni.py`) (V11)
+*   **Search Verticals:** Successfully creates 15+ sub-topic queries (e.g. "Spatial Audio" -> "HRTF", "Ambisonics").
+*   **Parallel Processing:** Uses `ThreadPoolExecutor` for high-speed OpenAlex querying.
+*   **Metadata Capture:** Now captures `Citation_Count` and maps Search Verticals to results.
 
 ### 2. The Interface (`app.py`)
-*   **Branding:** Renamed app to "ScholarStack: Your AI Research Librarian".
-*   **Simplification:** Removed manual API Key input; keys are now managed via Environment Variables.
-*   **Feedback:** Search logs stream in real-time, showing detailed "Accepted/Rejected" status.
+*   **Persistence:** Automatically saves/loads `user_settings.json` on startup.
+*   **History Modal:** A "View Search History" button at the top of the sidebar opens a large, sortable **Modal Dialog**. Clicking a row instantly reloads that configuration.
+*   **Granular Control:** Added toggles for "Keyword Logic" (AND/OR), "Auto-folders", and "Keyword Sub-folders".
+*   **Sorting:** Added "Citations: Most/Least" and Date sorting.
 
 ### 3. Core Pipeline
-*   **Target Logic:** "Fill the Bucket" loop continues until target count is met.
-*   **Sources:** Crossref (Deep Search) + Semantic Scholar (High Precision/OA).
-
-## Validated Fixes
-*   **Zero Results:** Fixed by relaxing local keyword constraints (Semantic Scholar now yielding papers).
-
-## Known Issues (Critical)
-*   **Persistent Low Yield:** Despite Hybrid Search and Topic Expansion, the number of *accepted* papers remains low (single digits instead of hundreds). The search pipeline is technically sound but operationally inefficient at finding high-volume relevant results.
-*   **Search Slowness:** Deep searching logic (Pass 1 + Pass 2) is slow.
-*   **Search Methods:** Still require significant tuning and optimization.
-
-
-## Technical Constraints & Critical Configuration
-> [!IMPORTANT]
-> **1. The "Ghost Key" Phenomenon:**
-> Python scripts can inherit stale environment variables from the parent shell (e.g., `export GOOGLE_API_KEY=...`) which OVERRIDE the `.env` file values by default.
-> **Fix:** All scripts MUST use `load_dotenv(override=True)` to force the `.env` file to take precedence. Do NOT remove this override.
-
-> [!WARNING]
-> **2. "Unlimited Trial" vs. "Free Tier":**
-> Even with a $300 "Unlimited" credit trial, the API Key functions as **Free Tier** (with strict Request Per Minute limits) unless Billing is enabled on the Google Cloud Project.
-> **Behavior:** Processing large batches (50+ papers) will trigger `429 Quota Exceeded`.
-> **Solution:** The system includes a "Patience Module" that waits exactly **60 seconds** (the RPM reset window) when this occurs. Do NOT interpret this wait as a system hang. It is a necessary safety valve.
+*   **Strict Taxonomy:** LLM Prompt now explicitly forbids "General/Misc" categories, forcing specific technical names.
+*   **Catalog Metadata:** Generated MD catalogs now include a "Search Settings" header (Keywords, Date Range, Sort Method).
 
 ## Recent Accomplishments
-*   **API Stability:** Resolved persistent "Quota Exceeded" errors by implementing a **Persistence Loop** (wait & retry) for the Gemini API and fixing a critical environment variable mismatch using `load_dotenv(override=True)`.
-*   **Search Vertical Expansion:** Successfully implemented LLM-driven "Search Verticals" (e.g., Topic -> Sub-disciplines) to maximize OpenAlex recall.
-*   **Hybrid Search Integration:** Implemented BM25 + Vector Search (ChromaDB) to resolve topics.
-*   **Topic Expansion:** Uses LLM to generate synonyms for broader search recall.
-*   **Dynamic Model Selection:** System now auto-detects the best available Gemini Flash model.
+*   **Search History & Load:** Implemented a robust system to log missions and restore them via a UI Modal (`st.dialog`).
+*   **Taxonomy Hardening:** Solved the "Generic Folder" issue by updating the clustering prompt to strictly reject broad terms.
+*   **Variable Scope Fix:** Resolved a critical `NameError` in the pipeline manager regarding metadata passing.
+*   **Streamlit Compatibility:** Updated deprecated `experimental_dialog` to stable `dialog` for compatibility with Streamlit 1.52.
+*   **UI Polish:** Optimized modal size (`width="large"`) and table height (`600px`) based on user feedback.
 
-## Resolved Issues
-*   **LLM Quota Errors:** Traced to a stale shell environment variable. Fixed by forcing the script to reload `.env`.
-*   **Search Hangs:** Fixed by implementing proper API backoff and logging.
+## Known Issues
+*   **Search Volume:** While precision is high, the "Target Paper Count" cap (1000) might hit API rate limits if valid papers are scarce.
+*   **PDF Paywalls:** Some sources remain stubborn; falling back to metadata scraping is working but dependent on site structure.
 
-## Upcoming Features
-*   **Search Yield Optimization:** Tuning the "Backdoor" algorithm to increase the volume of accepted papers based on the now-stable Search Verticals.
+## Technical Notes
+*   **Environment:** Continue using `.env` with `load_dotenv(override=True)` to prevent key exhaustion.
+*   **State Management:** `app.py` relies on `st.session_state` syncing with `user_settings.json`.

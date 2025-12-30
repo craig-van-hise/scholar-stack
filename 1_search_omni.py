@@ -224,7 +224,17 @@ class ResearchCrawler:
             # 1. Global Deduplication
             if c['id'] in self.seen_ids:
                 continue
+            
+            # Check Title/DOI early to ensure we don't count duplicates
+            norm_title = re.sub(r'[^a-z0-9]', '', str(c['title']).lower())
+            if norm_title in self.seen_titles:
+                continue
+            if c['doi'] and c['doi'] in self.seen_dois:
+                continue
+
             self.seen_ids.add(c['id'])
+            # Note: seen_dois and seen_titles are added in _add_final_result
+            # but we must check them here to skip processing
             
             # 2. Construct Audit Blob
             # We use the pre-parsed 'description' (abstract) and 'keywords' from execute_openalex_query
@@ -601,24 +611,29 @@ class ResearchCrawler:
         print(f"   ✅ Targeted Verticals: {verticals}", flush=True)
 
         # --- STEP 2: EXECUTE LOOP ---
-        for vertical in verticals:
-            print(f"\n   🔄 Loop: ('{clean_keyword}') AND ('{vertical}')", flush=True)
+        for keyword_str in self.keywords_list:
+            clean_keyword = keyword_str.replace('"', '').strip()
             
-            # Construct simple, high-power query
-            query = f'("{clean_keyword}") AND ("{vertical}")'
+            for vertical in verticals:
+                print(f"\n   🔄 Loop: ('{clean_keyword}') AND ('{vertical}')", flush=True)
+                
+                # Construct simple, high-power query
+                query = f'("{clean_keyword}") AND ("{vertical}")'
+                
+                # Execute standard query 
+                filters = ["is_oa:true", "has_doi:true", "type:article|conference-paper"]
+                if self.date_start: filters.append(f"publication_year:>{self.year_start-1}")
+                if self.date_end: filters.append(f"publication_year:<{self.year_end+1}")
+                filter_str = ",".join(filters)
+                
+                # Pass the CURRENT keyword as the search_vertical origin
+                self.execute_openalex_query(f"Vertical: {vertical}", filter_str, query, search_vertical=clean_keyword)
+                
+                # Stop if global target met
+                if len(self.results) >= self.target_count:
+                    break
             
-            # Execute standard query 
-            # Note: The execute_openalex_query method handles PDF downloading and Deduplication internally.
-            filters = ["is_oa:true", "has_doi:true", "type:article|conference-paper"]
-            if self.date_start: filters.append(f"publication_year:>{self.year_start-1}")
-            if self.date_end: filters.append(f"publication_year:<{self.year_end+1}")
-            filter_str = ",".join(filters)
-            
-            self.execute_openalex_query(f"Vertical: {vertical}", filter_str, query, search_vertical=clean_keyword)
-            
-            # Stop if global target met (checked inside execute_openalex_query too, but good to check here)
-            if len(self.results) >= self.target_count:
-                break
+            if len(self.results) >= self.target_count: break
                 
         print(f"\n   🏁 Iterative Loop Complete. Final Catalog Size: {len(self.results)}")
 

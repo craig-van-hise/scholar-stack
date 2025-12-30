@@ -7,10 +7,11 @@
 
 * **Omni-Channel Search**: Your librarian leverages **OpenAlex** to query a massive global index of research papers, utilizing **Unpaywall** to resolve open-access PDF links.
 * **Topic Expansion**: Uses **Google Gemini** to generate intelligent search verticals (e.g., "Spatial Audio" -> "Ambisonics", "Binaural") to find papers that keyword matching often misses.
-* **Smart Retrieval**: Aggressively acquires PDFs and validates file headers to ensure you receive high-quality, readable documents.
-* **AI Librarian**: Powered by **Google Gemini**, the agent reads abstracts and organizes papers into a custom taxonomy based on subject matter. *Includes robust retry logic for API limits.*
-* **Curated Packaging**: Instead of a messy list of links, ScholarStack packages your research into a **downloadable ZIP file** or syncs it directly to **Google Drive**.
-* **Modern Interface**: A Streamlit web app with real-time logs, history tracking, and granular controls over your librarian's search parameters.
+* **Smart Retrieval**: Aggressively acquires PDFs and validates file headers to ensure you receive high-quality, readable documents. Uses parallel processing for max speed.
+* **Strict Taxonomy**: Powered by **Google Gemini**, the agent reads abstracts and organizes papers into precise, technical sub-fields (e.g., "Ambisonics" instead of "General Audio").
+* **Search History & Persistence**: The app "remembers" your settings between sessions. A **Mission Log** lets you review and reload past search configurations instantly.
+* **Curated Packaging**: Packages your research into a **downloadable ZIP file** or syncs it directly to **Google Drive**.
+* **Modern Interface**: A Streamlit web app with **Modal Dialogs**, sortable history, and granular controls (Date Range, Keyword Logic, Citation Sorting).
 
 ---
 
@@ -20,14 +21,14 @@ ScholarStack organizes your research into a clean, logical structure. Whether yo
 
 ```text
 Library_Topic_Name/
-├── Catalog_Summary.md          # A master manifest with abstracts & links
-├── Category_A/                 # AI-generated sub-folder (e.g., "Neural Architectures")
-│   ├── paper_1.pdf
-│   └── index.json              # Metadata for each paper
-├── Category_B/                 # AI-generated sub-folder (e.g., "Optimization Techniques")
-│   ├── paper_2.pdf
-│   └── index.json
-└── General_Collection/         # Fallback for papers without specific categories
+├── Catalog_Summary.md          # A master manifest (includes Search Settings, Date Range, Sort Method)
+├── Keyword_Folder/             # (Optional) Segregated by your specific search term
+│   ├── Category_A/             # Precise AI Cluster (e.g., "Diffraction Modeling")
+│   │   ├── paper_1.pdf
+│   │   └── index.json          # Metadata
+│   └── Category_B/             # (e.g., "Binaural Rendering")
+│       └── paper_2.pdf
+└── ...
 
 ```
 
@@ -57,7 +58,7 @@ Library_Topic_Name/
 git clone https://github.com/craig-van-hise/scholar-stack.git
 cd scholar-stack
 python3 -m venv .venv
-source .venv/bin/activate
+python3 -m venv .venv
 pip install -r requirements.txt
 
 ```
@@ -69,7 +70,7 @@ pip install -r requirements.txt
 To launch the interface:
 
 ```bash
-python3 -m streamlit run app.py --server.port 8501
+./.venv/bin/python3 -m streamlit run app.py --server.port 8501
 
 ```
 
