@@ -154,6 +154,11 @@ def run_full_pipeline(topic, keywords=None, author=None, publication=None,
             yield "❌ Phase 3 Failed."
             return None
         yield "✅ Phase 3 Complete."
+        
+        # Check for final catalog to render timeline
+        final_csv = os.path.join(temp_dir, "final_library_catalog.csv")
+        if os.path.exists(final_csv):
+             yield ("CATALOG_CSV", final_csv)
 
         # --- Validate Output ---
         # Find the zip file in the temp dir

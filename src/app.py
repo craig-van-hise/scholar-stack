@@ -5,6 +5,7 @@ import time
 import datetime
 import shutil
 import pandas as pd
+import altair as alt
 from pipeline_manager import run_full_pipeline
 from drive_manager import DriveManager
 from auth_manager import get_login_url, get_token_from_code, get_user_info
@@ -34,6 +35,68 @@ def save_settings(settings):
             json.dump(serializable, f, indent=2)
     except Exception as e:
         print(f"Error saving settings: {e}")
+
+def render_visualizations(csv_path):
+    """
+    Renders visualizations from the catalog CSV:
+    1. Research Timeline (Year Distribution)
+    2. Impact Analysis (Citation Counts)
+    """
+    try:
+        df = pd.read_csv(csv_path)
+        
+        # --- 1. Research Timeline ---
+        # Ensure we have a year column
+        if 'Year' not in df.columns:
+            if 'Publication_Date' in df.columns:
+                df['Year'] = df['Publication_Date'].astype(str).str[:4]
+        
+        if 'Year' in df.columns:
+            # Clean Year data
+            def clean_year(y):
+                try:
+                    if pd.isna(y) or str(y).lower() in ['nan', 'none', '']: return "Unknown"
+                    return str(int(float(str(y).split('-')[0])))
+                except:
+                    return "Unknown"
+                    
+            df['Year_Clean'] = df['Year'].apply(clean_year)
+            year_counts = df['Year_Clean'].value_counts().sort_index()
+            
+            # Rename for tooltip cleanliness
+            timeline_data = pd.DataFrame({"Year": year_counts.index, "Count": year_counts.values}).set_index("Year")
+            
+            st.subheader("Research Timeline")
+            st.bar_chart(timeline_data)
+            st.divider()
+
+        # --- 2. Impact Analysis (Citation Counts) ---
+        print(f"DEBUG: Checking for Citation_Count. Columns: {df.columns}")
+        if 'Citation_Count' in df.columns and 'Title' in df.columns:
+            # Drop rows with NaN citations, titles
+            cit_df = df.dropna(subset=['Citation_Count', 'Title']).copy()
+            print(f"DEBUG: Rows after initial drop: {len(cit_df)}")
+            
+            # Ensure proper types
+            cit_df['Citation_Count'] = pd.to_numeric(cit_df['Citation_Count'], errors='coerce').fillna(0)
+            cit_df['Authors'] = cit_df['Authors'].fillna("Unknown")
+            
+            # Sort Layout: Low to High (Ascending)
+            cit_df = cit_df.sort_values(by='Citation_Count', ascending=True)
+            
+            st.subheader("Citation Impact (Low to High)")
+            
+            c = alt.Chart(cit_df).mark_bar().encode(
+                x=alt.X('Title', sort=None, axis=alt.Axis(labels=False, title="Paper Title")),
+                y=alt.Y('Citation_Count', title="Citations"),
+                tooltip=['Title', 'Authors', 'Citation_Count']
+            ).interactive()
+            
+            st.altair_chart(c, use_container_width=True)
+            st.divider()
+        
+    except Exception as e:
+        print(f"Visualization error: {e}")
 
 def save_history(settings):
     try:
@@ -242,6 +305,8 @@ if 'recent_topics' not in st.session_state:
     st.session_state.recent_topics = []
 if 'temp_dir_to_cleanup' not in st.session_state:
     st.session_state.temp_dir_to_cleanup = None
+if 'timeline_csv' not in st.session_state:
+    st.session_state.timeline_csv = None
 
 st.title("📚 ScholarStack")
 st.caption("Your AI Research Librarian")
@@ -279,6 +344,9 @@ if st.session_state.pipeline_run and st.session_state.zip_path and os.path.exist
         with st.container(height=500):
             st.markdown(st.session_state.catalog_content)
         st.divider()
+        
+    if st.session_state.timeline_csv:
+        render_visualizations(st.session_state.timeline_csv)
 
 # --- Sidebar ---
 with st.sidebar:
@@ -419,6 +487,7 @@ if start_btn:
         st.session_state.pipeline_run = False
         st.session_state.zip_path = None
         st.session_state.catalog_content = None
+        st.session_state.timeline_csv = None # Reset timeline
         st.session_state.history_open = False # Prevent zombie modal
         
         if st.session_state.temp_dir_to_cleanup:
@@ -486,6 +555,10 @@ if start_btn:
                 if isinstance(line, tuple):
                     if line[0] == "RETURN_PATH": final_zip_path = line[1]
                     elif line[0] == "TEMP_DIR": temp_dir = line[1]
+                    elif line[0] == "CATALOG_CSV":
+                        # Render visualizations immediately AND save for persistence
+                        render_visualizations(line[1])
+                        st.session_state.timeline_csv = line[1]
                 else:
                     full_log += line + "\n"
                     log_container.code(full_log, language="bash")

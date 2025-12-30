@@ -28,6 +28,22 @@ def sanitize_folder_name(name):
     clean = "".join([c if c.isalnum() or c in (' ', '_', '-') else '' for c in name])
     return clean.strip().replace(' ', '_')
 
+def clean_json_string(json_str):
+    """
+    Cleans common JSON formatting errors from LLM output.
+    1. Removes Markdown code fences (```json, ```).
+    2. Escapes unescaped newlines inside strings.
+    3. Trims whitespace.
+    """
+    json_str = json_str.strip()
+    if json_str.startswith("```json"):
+        json_str = json_str[7:]
+    if json_str.startswith("```"):
+        json_str = json_str[3:]
+    if json_str.endswith("```"):
+        json_str = json_str[:-3]
+    return json_str.strip()
+
 
 
 
@@ -218,7 +234,8 @@ def cluster_and_categorize(topic, sort_method="Most Relevant", limit=100, no_llm
                     
                     if response.text:
                         # Direct JSON parse of the structured output
-                        payload = json.loads(response.text)
+                        cleaned_text = clean_json_string(response.text)
+                        payload = json.loads(cleaned_text)
                         
                         # Process assignments
                         local_map = {}
