@@ -126,6 +126,72 @@ def create_ris_catalog(papers, output_path):
             
             f.write("ER  - \n\n")
 
+def generate_citation_key(paper, existing_keys):
+    """Generates a unique BibTeX citation key: [FirstAuthor][Year][FirstTitleWord]"""
+    # 1. First Author
+    authors = paper.get('authors', [])
+    if authors:
+        # Assuming "First Last" or "Last, First". Heuristic: split by space, take last part of first element?
+        # Standardized format usually "First Last" in list?
+        # Let's try to be smart. Remove weird chars.
+        first_auth_full = authors[0]
+        # remove content in parens if any
+        first_auth_full = re.sub(r'\(.*?\)', '', first_auth_full).strip()
+        # Take last word as surname (rough heuristic)
+        surname = first_auth_full.split()[-1] if first_auth_full else "Unknown"
+        surname = "".join(filter(str.isalnum, surname))
+    else:
+        surname = "Unknown"
+        
+    # 2. Year
+    year = str(paper.get('year', '0000'))
+    if not year.isdigit(): year = "0000"
+    
+    # 3. First Word of Title
+    title = paper.get('title', 'Untitled')
+    # filtered title
+    title_words = [w for w in re.split(r'[^a-zA-Z0-9]', title) if w]
+    first_word = title_words[0] if title_words else "Doc"
+    
+    base_key = f"{surname}{year}{first_word}"
+    
+    key = base_key
+    suffix = 97 # 'a'
+    while key in existing_keys:
+        key = f"{base_key}_{chr(suffix)}"
+        suffix += 1
+        if suffix > 122: # z
+             key = f"{base_key}_{suffix}" # Fallback to numbers if we run out of letters
+    
+    return key
+
+def create_bibtex_catalog(papers, output_path):
+    """Generates a BibTeX file for LaTeX support."""
+    existing_keys = set()
+    
+    with open(output_path, 'w', encoding='utf-8') as f:
+        for p in papers:
+            # Generate Unique Key
+            cite_key = generate_citation_key(p, existing_keys)
+            existing_keys.add(cite_key)
+            
+            # Format Authors (BibTeX uses "Last, First and Last, First" or "First Last and First Last")
+            # We have "First Last" strings. Join with " and ".
+            authors_bib = " and ".join(p.get('authors', []))
+            
+            f.write(f"@article{{{cite_key},\n")
+            f.write(f"  title = {{{p.get('title', '')}}},\n")
+            f.write(f"  author = {{{authors_bib}}},\n")
+            f.write(f"  year = {{{p.get('year', '')}}},\n")
+            f.write(f"  journal = {{{p.get('journal', '')}}},\n")
+            if p.get('doi'): f.write(f"  doi = {{{p.get('doi')}}},\n")
+            if p.get('url'): f.write(f"  url = {{{p.get('url')}}},\n")
+            if p.get('abstract'): 
+                 # Basic escaping for abstract
+                 abs_text = p.get('abstract', '').replace('%', '\\%').replace('{', '\\{').replace('}', '\\}')
+                 f.write(f"  abstract = {{{abs_text}}}\n")
+            f.write("}\n\n")
+
 def sanitize_folder_name(name):
     clean = "".join([c if c.isalnum() or c in (' ', '_', '-') else '' for c in name])
     return clean.strip().replace(' ', '_')
@@ -846,6 +912,9 @@ def download_library(limit=None, sort_by="Most Relevant", **kwargs):
         
         # C. RIS
         create_ris_catalog(standardized_papers, cat_base + ".ris")
+        
+        # D. BibTeX (PRP #11)
+        create_bibtex_catalog(standardized_papers, cat_base + ".bib")
 
     # 4. Zip
     if os.path.exists(topic_root):
