@@ -15,6 +15,16 @@
 
 ---
 
+---
+
+## 📂 Project Structure
+
+*   **`src/`**: Core application code (`app.py`, pipelines).
+*   **`data/`**: Application state (`search_history.json`, `user_settings.json`), search cache, and `Library/` output.
+*   **`scripts/`**: Utility scripts for verification and debugging (e.g., `verify_density.py`).
+*   **`tests/`**: Unit tests and test data.
+*   **`PRPs/`**: Product Requirements Prompts (Feature backlog).
+
 ## 📂 The "Stacked" Output
 
 ScholarStack organizes your research into a clean, logical structure. Whether you download the **ZIP** or sync to **Drive**, you get:
@@ -58,7 +68,7 @@ Library_Topic_Name/
 git clone https://github.com/craig-van-hise/scholar-stack.git
 cd scholar-stack
 python3 -m venv .venv
-python3 -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
 
 ```
@@ -70,7 +80,7 @@ pip install -r requirements.txt
 To launch the interface:
 
 ```bash
-./.venv/bin/python3 -m streamlit run app.py --server.port 8501
+./.venv/bin/streamlit run src/app.py --server.port 8501
 
 ```
 

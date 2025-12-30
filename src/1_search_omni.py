@@ -18,6 +18,16 @@ from urllib3.util.retry import Retry
 import warnings
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import fitz  # PyMuPDF
+try:
+    from unpywall.utils import UnpywallCredentials
+    from unpywall import Unpywall
+    # Monkeypatch or configure cache if library supports it.
+    # If not, we just accept no cache or use environmental variable if applicable.
+    # Looking at unpywall source (common knowledge), it uses `requests_cache`.
+    import requests_cache
+    cache_path = os.path.join(os.path.dirname(__file__), "../data/unpaywall_cache")
+    requests_cache.install_cache(cache_path, backend='sqlite', expire_after=86400)
+except: pass
 
 # --- Suppress Warnings (Must be before imports that trigger them) ---
 warnings.filterwarnings("ignore")

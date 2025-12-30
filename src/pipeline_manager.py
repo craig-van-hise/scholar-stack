@@ -20,9 +20,10 @@ def run_full_pipeline(topic, keywords=None, author=None, publication=None,
     current_dir = os.getcwd()
     
     # Get absolute paths to the scripts (since we will change execution context)
-    script_1 = os.path.abspath("1_search_omni.py")
-    script_2 = os.path.abspath("2_cluster_taxonomy.py")
-    script_3 = os.path.abspath("3_download_library.py")
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    script_1 = os.path.join(base_dir, "1_search_omni.py")
+    script_2 = os.path.join(base_dir, "2_cluster_taxonomy.py")
+    script_3 = os.path.join(base_dir, "3_download_library.py")
     
     yield f"🚀 Starting Mission in Isolated Workspace..."
     # yield f"DEBUG: Workspace: {temp_dir}"

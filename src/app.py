@@ -10,8 +10,8 @@ from drive_manager import DriveManager
 from auth_manager import get_login_url, get_token_from_code, get_user_info
 import json
 
-SETTINGS_FILE = "user_settings.json"
-HISTORY_FILE = "search_history.json"
+SETTINGS_FILE = os.path.join(os.path.dirname(__file__), "../data/user_settings.json")
+HISTORY_FILE = os.path.join(os.path.dirname(__file__), "../data/search_history.json")
 
 def load_settings():
     if os.path.exists(SETTINGS_FILE):

@@ -9,21 +9,19 @@ import argparse
 import shutil
 from collections import Counter
 import sys
+import typing_extensions
 
 # Load environment variables
 # Load environment variables (Force override to prevent stale shell keys)
 load_dotenv(override=True)
 
-def clean_json_string(s):
-    """Helper to clean markdown formatting from JSON string."""
-    s = s.strip()
-    if s.startswith("```json"):
-        s = s[7:]
-    if s.startswith("```"):
-        s = s[3:]
-    if s.endswith("```"):
-        s = s[:-3]
-    return s.strip()
+class PaperClassification(typing_extensions.TypedDict):
+    id: str
+    category_name: str
+    justification_quote: str  # Forces the LLM to prove its work
+
+class TaxonomyResponse(typing_extensions.TypedDict):
+    assignments: list[PaperClassification]
 
 def sanitize_folder_name(name):
     """Sanitizes category names for file system compatibility."""
@@ -65,9 +63,15 @@ def cluster_and_categorize(topic, sort_method="Most Relevant", limit=100, no_llm
 
         
 
-    csv_path = "research_catalog.csv"
-    if not os.path.exists(csv_path):
-        print(f"Error: {csv_path} not found.")
+    csv_filename = "research_catalog.csv"
+    data_dir_csv = os.path.join(os.path.dirname(__file__), "../data", csv_filename)
+    
+    if os.path.exists(csv_filename):
+        csv_path = csv_filename
+    elif os.path.exists(data_dir_csv):
+        csv_path = data_dir_csv
+    else:
+        print(f"Error: {csv_filename} not found in CWD or ../data/")
         return
     try:
         df = pd.read_csv(csv_path)
@@ -141,10 +145,16 @@ def cluster_and_categorize(topic, sort_method="Most Relevant", limit=100, no_llm
             for index, row in v_df.iterrows():
                 # Use DOI as robust ID
                 paper_id = row['DOI'] if pd.notna(row['DOI']) and str(row['DOI']).strip() else row['Title']
+                
+                # Data Hygiene: Filter short/bad abstracts
+                desc = str(row['Description'])
+                if len(desc) < 50:
+                     desc = f"Title: {row['Title']}" # Force Title-only categorization
+                     
                 papers_payload.append({
                     "id": paper_id,
                     "title": row['Title'],
-                    "description": str(row['Description'])[:500]
+                    "description": desc[:500]
                 })
 
             num_papers_v = len(v_df)
@@ -178,16 +188,14 @@ def cluster_and_categorize(topic, sort_method="Most Relevant", limit=100, no_llm
             1. **Analyze**: Identify **{target_cats}** distinct technical themes within this specific sub-field.
             2. **Assign**: Assign EVERY paper to one of these themes.
             3. **Filter**: If a paper is unrelated to "{vertical}", assign "DISCARD".
+            4. **Proof**: For every assignment, you MUST quote a specific phrase from the abstract that justifies your choice.
             
             Critical Constraints:
-            1. **Context**: These papers are ALREADY filtered by keyword "{vertical}". Do NOT create a category named "{vertical}". Break it down further (e.g. if "{vertical}"="HRTF", use "HRTF Measurement", "HRTF Personalization").
-            2. **Broad Clusters**: Do NOT map 1-to-1.
-            3. **Forbidden**: "General", "Miscellaneous", "Other".
-            4. **Density**: Each theme should have {density_note}.
-            
-            Output Format:
-            Return strictly a JSON object. 
-            KEYS = The exact "id" provided in the input. VALUES = Category Name.
+            1. **Style**: Format category names as **concise Noun Phrases** (e.g., 'Spatial Audio', not 'Papers about Spatial Audio'). Avoid parenthetical qualifiers.
+            2. **Context**: These papers are ALREADY filtered by keyword "{vertical}". Do NOT create a category named "{vertical}". Break it down further (e.g. if "{vertical}"="HRTF", use "HRTF Measurement", "HRTF Personalization").
+            3. **Broad Clusters**: Do NOT map 1-to-1.
+            4. **Forbidden**: "General", "Miscellaneous", "Other".
+            5. **Density**: Each theme should have {density_note}.
             
             Papers:
             {json.dumps(papers_payload, indent=2)}
@@ -200,10 +208,46 @@ def cluster_and_categorize(topic, sort_method="Most Relevant", limit=100, no_llm
             max_retries = 3
             for attempt in range(max_retries):
                 try:
-                    response = model.generate_content(prompt)
+                    response = model.generate_content(
+                        prompt,
+                        generation_config=genai.GenerationConfig(
+                            response_mime_type="application/json",
+                            response_schema=TaxonomyResponse
+                        )
+                    )
+                    
                     if response.text:
-                        cleaned_response = clean_json_string(response.text)
-                        local_map = json.loads(cleaned_response)
+                        # Direct JSON parse of the structured output
+                        payload = json.loads(response.text)
+                        
+                        # Process assignments
+                        local_map = {}
+                        print(f"      Mapped {len(payload.get('assignments', []))} papers:")
+                        
+                        for item in payload.get('assignments', []):
+                            pid = item['id']
+                            cat = item['category_name']
+                            # 1. Take the full name from the LLM
+                            cat_raw = item['category_name'].strip()
+
+                            # 2. Safety Truncate: Only chop if excessively long (> 6 words)
+                            words = cat_raw.split()
+                            if len(words) > 6:
+                                cat_raw = " ".join(words[:6])
+
+                            # 3. Stopword Cleanup: Remove trailing connectors
+                            # Regex targets: and, or, of, the, for, in, on, with, to
+                            cat = re.sub(r'[^a-zA-Z0-9]+$', '', cat_raw) # Strip non-alphanumeric (brackets, punctuation)
+                            cat = re.sub(r'\s+(and|or|of|the|for|in|on|with|to)$', '', cat, flags=re.IGNORECASE).strip()
+                                
+                            quote = item.get('justification_quote', 'No Quote provided')
+                            local_map[pid] = cat
+                            
+                            # Sanity Check Log
+                            # Only print first 3 to avoid spamming console, or print all if verbose? 
+                            # Let's print all for now as requested by user to "see why"
+                            print(f"       [{cat}] <- \"{quote[:60]}...\"")
+
                         taxonomy_map.update(local_map)
                         local_success = True
                         print(f"      Refined into {len(set(local_map.values()))} categories.", flush=True)

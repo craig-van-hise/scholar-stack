@@ -1,8 +1,11 @@
 
 import pandas as pd
 
+import os
 try:
-    df = pd.read_csv("research_catalog_categorized.csv")
+    # Look in data/
+    csv_path = os.path.join(os.path.dirname(__file__), "../data/research_catalog_categorized.csv")
+    df = pd.read_csv(csv_path)
     if 'Search_Vertical' not in df.columns:
         print("Error: Search_Vertical column missing.")
     else:
