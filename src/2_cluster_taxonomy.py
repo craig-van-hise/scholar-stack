@@ -68,10 +68,14 @@ def get_best_model():
     except:
         return 'models/gemini-1.5-flash'
 
-def cluster_and_categorize(topic, sort_method="Most Relevant", limit=100, no_llm=False, use_keywords=False):
+def cluster_and_categorize(topic, sort_method="Most Relevant", limit=100, no_llm=False, use_keywords=False, fast_mode=False):
     print("=== Phase 3: The Smart Architect (Improved Clustering) ===", flush=True)
     print(f"Topic: {topic}")
     print(f"Prioritize By: {sort_method}, Limit: {limit}", flush=True)
+    
+    if fast_mode:
+        print("⚡ Fast Mode Enabled: Skipping AI Clustering.", flush=True)
+        no_llm = True
     
 
         
@@ -182,106 +186,121 @@ def cluster_and_categorize(topic, sort_method="Most Relevant", limit=100, no_llm
                     taxonomy_map[p['id']] = f"{vertical} Overview"
                 continue # Skip LLM
 
-            # --- Logic for Large Groups (LLM) ---
-            # Dynamic prompt constraints based on group size
-            if num_papers_v < 20:
-                 target_cats = "exactly 2"
-                 density_note = f"roughly {int(num_papers_v/2)} papers"
-            elif num_papers_v < 60:
-                 target_cats = "exactly 4"
-                 density_note = f"roughly {int(num_papers_v/4)} papers"
-            else:
-                 target_cats = "5-8"
-                 density_note = "balanced distribution"
-
+            # --- Batching for Large Groups ---
+            # Split into batches of max 50 papers to prevent JSON corruption
+            BATCH_SIZE = 50
+            num_batches = (num_papers_v + BATCH_SIZE - 1) // BATCH_SIZE
+            
+            if num_batches > 1:
+                print(f"      Large group ({num_papers_v} papers). Processing in {num_batches} batches...")
+            
             model_name = get_best_model()
-
-            prompt = f"""
-            You are an expert academic librarian organizing a specific sub-folder of papers on: "{vertical}" (Topic: {topic}).
-            Input: {num_papers_v} academic papers.
-            
-            Task:
-            1. **Analyze**: Identify **{target_cats}** distinct technical themes within this specific sub-field.
-            2. **Assign**: Assign EVERY paper to one of these themes.
-            3. **Filter**: If a paper is unrelated to "{vertical}", assign "DISCARD".
-            4. **Proof**: For every assignment, you MUST quote a specific phrase from the abstract that justifies your choice.
-            
-            Critical Constraints:
-            1. **Style**: Format category names as **concise Noun Phrases** (e.g., 'Spatial Audio', not 'Papers about Spatial Audio'). Avoid parenthetical qualifiers.
-            2. **Context**: These papers are ALREADY filtered by keyword "{vertical}". Do NOT create a category named "{vertical}". Break it down further (e.g. if "{vertical}"="HRTF", use "HRTF Measurement", "HRTF Personalization").
-            3. **Broad Clusters**: Do NOT map 1-to-1.
-            4. **Forbidden**: "General", "Miscellaneous", "Other".
-            5. **Density**: Each theme should have {density_note}.
-            
-            Papers:
-            {json.dumps(papers_payload, indent=2)}
-            """
-
-            # Retry Loop (Per Vertical)
             model = genai.GenerativeModel(model_name)
-            local_success = False
             
-            max_retries = 3
-            for attempt in range(max_retries):
-                try:
-                    response = model.generate_content(
-                        prompt,
-                        generation_config=genai.GenerationConfig(
-                            response_mime_type="application/json",
-                            response_schema=TaxonomyResponse
+            for batch_idx in range(num_batches):
+                start_idx = batch_idx * BATCH_SIZE
+                end_idx = min((batch_idx + 1) * BATCH_SIZE, num_papers_v)
+                batch_payload = papers_payload[start_idx:end_idx]
+                batch_size = len(batch_payload)
+                
+                if num_batches > 1:
+                    print(f"      Batch {batch_idx + 1}/{num_batches} ({batch_size} papers)...")
+                
+                # Dynamic prompt constraints based on batch size
+                if batch_size < 20:
+                     target_cats = "exactly 2"
+                     density_note = f"roughly {int(batch_size/2)} papers"
+                elif batch_size < 60:
+                     target_cats = "exactly 4"
+                     density_note = f"roughly {int(batch_size/4)} papers"
+                else:
+                     target_cats = "5-8"
+                     density_note = "balanced distribution"
+
+                prompt = f"""
+                You are an expert academic librarian organizing a specific sub-folder of papers on: "{vertical}" (Topic: {topic}).
+                Input: {batch_size} academic papers.
+                
+                Task:
+                1. **Analyze**: Identify **{target_cats}** distinct technical themes within this specific sub-field.
+                2. **Assign**: ASSIGN EVERY paper to one of these themes.
+                3. **Filter**: If a paper is unrelated to "{vertical}", assign "DISCARD".
+                4. **Proof**: For every assignment, you MUST quote a specific phrase from the abstract that justifies your choice.
+                
+                Critical Constraints:
+                1. **Style**: Format category names as **concise Noun Phrases** (e.g., 'Spatial Audio', not 'Papers about Spatial Audio'). Avoid parenthetical qualifiers.
+                2. **Context**: These papers are ALREADY filtered by keyword "{vertical}". Do NOT create a category named "{vertical}". Break it down further (e.g. if "{vertical}"="HRTF", use "HRTF Measurement", "HRTF Personalization").
+                3. **Broad Clusters**: Do NOT map 1-to-1.
+                4. **Forbidden**: "General", "Miscellaneous", "Other".
+                5. **Density**: Each theme should have {density_note}.
+                
+                Papers:
+                {json.dumps(batch_payload, indent=2)}
+                """
+                
+                # Retry Loop (Per Batch)
+                local_success = False
+                max_retries = 3
+                for attempt in range(max_retries):
+                    try:
+                        response = model.generate_content(
+                            prompt,
+                            generation_config=genai.GenerationConfig(
+                                response_mime_type="application/json",
+                                response_schema=TaxonomyResponse
+                            )
                         )
-                    )
-                    
-                    if response.text:
-                        # Direct JSON parse of the structured output
-                        cleaned_text = clean_json_string(response.text)
-                        payload = json.loads(cleaned_text)
                         
-                        # Process assignments
-                        local_map = {}
-                        print(f"      Mapped {len(payload.get('assignments', []))} papers:")
-                        
-                        for item in payload.get('assignments', []):
-                            pid = item['id']
-                            cat = item['category_name']
-                            # 1. Take the full name from the LLM
-                            cat_raw = item['category_name'].strip()
-
-                            # 2. Safety Truncate: Only chop if excessively long (> 6 words)
-                            words = cat_raw.split()
-                            if len(words) > 6:
-                                cat_raw = " ".join(words[:6])
-
-                            # 3. Stopword Cleanup: Remove trailing connectors
-                            # Regex targets: and, or, of, the, for, in, on, with, to
-                            cat = re.sub(r'[^a-zA-Z0-9]+$', '', cat_raw) # Strip non-alphanumeric (brackets, punctuation)
-                            cat = re.sub(r'\s+(and|or|of|the|for|in|on|with|to)$', '', cat, flags=re.IGNORECASE).strip()
-                                
-                            quote = item.get('justification_quote', 'No Quote provided')
-                            local_map[pid] = cat
+                        if response.text:
+                            # Direct JSON parse of the structured output
+                            cleaned_text = clean_json_string(response.text)
+                            payload = json.loads(cleaned_text)
                             
-                            # Sanity Check Log
-                            # Only print first 3 to avoid spamming console, or print all if verbose? 
-                            # Let's print all for now as requested by user to "see why"
-                            print(f"       [{cat}] <- \"{quote[:60]}...\"")
+                            # Process assignments
+                            local_map = {}
+                            print(f"      Mapped {len(payload.get('assignments', []))} papers:")
+                            
+                            for item in payload.get('assignments', []):
+                                pid = item['id']
+                                cat = item['category_name']
+                                # 1. Take the full name from the LLM
+                                cat_raw = item['category_name'].strip()
 
-                        taxonomy_map.update(local_map)
-                        local_success = True
-                        print(f"      Refined into {len(set(local_map.values()))} categories.", flush=True)
-                        break
-                except Exception as e:
-                     if "429" in str(e):
-                        time.sleep(10) # 429 backoff
-                     elif attempt == max_retries - 1:
-                        print(f"      ❌ Failed to categorize '{vertical}': {e}")
+                                # 2. Safety Truncate: Only chop if excessively long (> 6 words)
+                                words = cat_raw.split()
+                                if len(words) > 6:
+                                    cat_raw = " ".join(words[:6])
 
-            if not local_success:
-                 # Fallback for this vertical ONLY
-                 print(f"      Falling back to '{vertical} Overview'.")
-                 for p in papers_payload:
-                     taxonomy_map[p['id']] = f"{vertical} Overview"
+                                # 3. Stopword Cleanup: Remove trailing connectors
+                                # Regex targets: and, or, of, the, for, in, on, with, to
+                                cat = re.sub(r'[^a-zA-Z0-9]+$', '', cat_raw) # Strip non-alphanumeric (brackets, punctuation)
+                                cat = re.sub(r'\s+(and|or|of|the|for|in|on|with|to)$', '', cat, flags=re.IGNORECASE).strip()
+                                    
+                                quote = item.get('justification_quote', 'No Quote provided')
+                                local_map[pid] = cat
+                                
+                                # Sanity Check Log
+                                # Only print first 3 to avoid spamming console, or print all if verbose? 
+                                # Let's print all for now as requested by user to "see why"
+                                print(f"       [{cat}] <- \"{quote[:60]}...\"")
 
-            time.sleep(2) # Rate limit hygiene
+                            taxonomy_map.update(local_map)
+                            local_success = True
+                            print(f"      Refined into {len(set(local_map.values()))} categories.", flush=True)
+                            break
+                    except Exception as e:
+                         if "429" in str(e):
+                            time.sleep(10) # 429 backoff
+                         elif attempt == max_retries - 1:
+                            print(f"      ❌ Failed to categorize batch: {e}")
+
+                if not local_success:
+                     # Fallback for this batch ONLY
+                     print(f"      Falling back to '{vertical} Overview' for this batch.")
+                     for p in batch_payload:
+                         taxonomy_map[p['id']] = f"{vertical} Overview"
+
+                time.sleep(2) # Rate limit hygiene
 
         if len(taxonomy_map) > 0:
             ai_success = True
@@ -407,7 +426,8 @@ if __name__ == "__main__":
     parser.add_argument("--limit", type=int, default=100)
     parser.add_argument("--no_llm", action="store_true")
     parser.add_argument("--use_keywords", action="store_true")
+    parser.add_argument("--fast_mode", action="store_true")
     args = parser.parse_args()
     
-    cluster_and_categorize(args.topic, args.sort, args.limit, args.no_llm, args.use_keywords)
+    cluster_and_categorize(args.topic, args.sort, args.limit, args.no_llm, args.use_keywords, args.fast_mode)
 

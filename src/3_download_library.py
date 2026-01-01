@@ -693,7 +693,7 @@ def download_file(url, local_path):
             
     return False
 
-def download_library(limit=None, sort_by="Most Relevant", filename_format="Title", **kwargs):
+def download_library(limit=None, sort_by="Most Relevant", filename_format="Title", fast_mode=False, **kwargs):
     print("=== Phase 4: The Physical Librarian (V9: Robust) ===")
     
     csv_path = "research_catalog_categorized.csv"
@@ -772,6 +772,11 @@ def download_library(limit=None, sort_by="Most Relevant", filename_format="Title
         filename = generate_filename(row, format_option=filename_format)
         local_path = os.path.join(dest_folder, filename)
         
+        # --- RESUME LOGIC: Check if file physically exists ---
+        if os.path.exists(local_path) and os.path.getsize(local_path) > 1024:
+             # Assume success if file exists and > 1KB
+             return (index, True, row.get('Source_URL'), filename, False)
+        
         url = row.get('Source_URL')
         doi = row.get('DOI')
         
@@ -797,18 +802,20 @@ def download_library(limit=None, sort_by="Most Relevant", filename_format="Title
                  if download_file(pdf_url, local_path):
                      return (index, True, pdf_url, filename, False)
 
-        # 4. Secondary Search (S2)
-        new_url = attempt_secondary_search(title)
-        if new_url:
-            if download_file(new_url, local_path):
-                 return (index, True, new_url, filename, False)
+        if not fast_mode:
+            # 4. Secondary Search (S2)
+            new_url = attempt_secondary_search(title)
+            if new_url:
+                if download_file(new_url, local_path):
+                     return (index, True, new_url, filename, False)
 
-        # 5. DDG Rescue (Multi-Candidate)
-        candidates = attempt_ddg_fallback(title)
-        if candidates:
-            for cand_url in candidates:
-                if download_file(cand_url, local_path):
-                     return (index, True, cand_url, filename, False)
+        if not fast_mode:
+            # 5. DDG Rescue (Multi-Candidate)
+            candidates = attempt_ddg_fallback(title)
+            if candidates:
+                for cand_url in candidates:
+                    if download_file(cand_url, local_path):
+                         return (index, True, cand_url, filename, False)
         
         return (index, False, None, None, True)
 
@@ -818,25 +825,39 @@ def download_library(limit=None, sort_by="Most Relevant", filename_format="Title
     # Prepare arguments
     tasks = [(i, row) for i, row in df.iterrows()]
     
-    # Max Workers = 5 to avoid triggering aggressive DDoS protection
-    with ThreadPoolExecutor(max_workers=5) as executor:
+    # Max Workers = 4 to balance speed and stability
+    with ThreadPoolExecutor(max_workers=4) as executor:
         future_to_paper = {executor.submit(process_paper_wrapper, task): task for task in tasks}
         
+        processed_count = 0
+        checkpoint_interval = 10
+        
         for future in tqdm(as_completed(future_to_paper), total=len(tasks), desc="Downloading (Parallel)"):
-            idx, success, final_url, fname, paywalled = future.result()
-            
-            if success:
-                df.at[idx, 'Is_Downloaded'] = True
-                df.at[idx, 'Source_URL'] = final_url
-                df.at[idx, 'Original_Filename'] = fname
-                df.at[idx, 'Is_Paywalled'] = False
-                success_count += 1
-                # Optional: print success to keep log alive
-                # print(f"   [SUCCESS] {len(str(final_url))} chars") 
-            else:
-                df.at[idx, 'Is_Downloaded'] = False
-                df.at[idx, 'Is_Paywalled'] = True
-                fail_count += 1
+            try:
+                idx, success, final_url, fname, paywalled = future.result()
+                
+                if success:
+                    df.at[idx, 'Is_Downloaded'] = True
+                    df.at[idx, 'Source_URL'] = final_url
+                    df.at[idx, 'Original_Filename'] = fname
+                    df.at[idx, 'Is_Paywalled'] = False
+                    success_count += 1
+                else:
+                    df.at[idx, 'Is_Downloaded'] = False
+                    df.at[idx, 'Is_Paywalled'] = True
+                    fail_count += 1
+                
+                processed_count += 1
+                
+                # Checkpoint: Save progress every N papers
+                if processed_count % checkpoint_interval == 0:
+                    df.to_csv(csv_path, index=False)
+                    
+            except Exception as e:
+                print(f"Error processing future: {e}")
+                
+        # Final save after loop
+        df.to_csv(csv_path, index=False)
 
     print("\nStarting Clean Up and Export...")
     
@@ -984,6 +1005,7 @@ if __name__ == "__main__":
     parser.add_argument("--date_start", type=str, default="", help="Start Year")
     parser.add_argument("--date_end", type=str, default="", help="End Year")
     parser.add_argument("--filename_format", type=str, default="Title", help="PDF Filename Format")
+    parser.add_argument("--fast_mode", action="store_true")
     
     args = parser.parse_args()
     
@@ -997,6 +1019,7 @@ if __name__ == "__main__":
         limit=args.limit, 
         sort_by=args.sort, 
         filename_format=args.filename_format,
+        fast_mode=args.fast_mode,
         keywords=args.keywords, 
         date_range=d_range
     )

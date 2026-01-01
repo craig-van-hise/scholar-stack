@@ -11,6 +11,7 @@ from drive_manager import DriveManager
 from auth_manager import get_login_url, get_token_from_code, get_user_info
 import alerts_db
 import json
+from storage_manager import StorageManager
 
 SETTINGS_FILE = os.path.join(os.path.dirname(__file__), "../data/user_settings.json")
 HISTORY_FILE = os.path.join(os.path.dirname(__file__), "../data/search_history.json")
@@ -254,10 +255,6 @@ st.markdown(
     }
     /* Top Right User Profile */
     .user-profile {
-        position: fixed;
-        top: 60px;
-        right: 20px;
-        z-index: 999;
         background-color: #f0f2f6;
         padding: 8px 15px;
         border-radius: 20px;
@@ -309,7 +306,7 @@ if st.session_state.user_info:
     """, unsafe_allow_html=True)
     
     # Sign-out button aligned to right
-    col1, col2 = st.columns([3, 1])
+    col1, col2 = st.columns([5, 1])
     with col2:
         if st.button("Sign Out", key="signout_btn", use_container_width=True):
             st.session_state.credentials = None
@@ -317,7 +314,7 @@ if st.session_state.user_info:
             st.rerun()
 else:
     # Sign-in button in top right
-    col1, col2 = st.columns([3, 1])
+    col1, col2 = st.columns([5, 1])
     with col2:
         login_url = get_login_url()
         if login_url:
@@ -363,8 +360,50 @@ if st.session_state.pipeline_run and st.session_state.zip_path and os.path.exist
     with col_hero_2:
         subcol1, subcol2 = st.columns(2)
         with subcol1:
-            with open(st.session_state.zip_path, "rb") as f:
-                st.download_button("📦 DOWNLOAD ZIP", f, file_name=os.path.basename(st.session_state.zip_path), mime="application/zip", use_container_width=True, type="primary")
+            # 1. Calculate Size
+            try:
+                zip_size_mb = os.path.getsize(st.session_state.zip_path) / (1024*1024)
+            except: zip_size_mb = 0
+            
+            # 2. Strategy Selection
+            if zip_size_mb > 500:
+                # LARGE FILE STRATEGY: Static Serve
+                st.warning(f"⚠️ File is large ({zip_size_mb:.0f} MB). Browser download may fail.")
+                
+                # Copy/Link to static folder
+                static_dir = "static"
+                if not os.path.exists(static_dir): os.makedirs(static_dir)
+                
+                zip_filename = os.path.basename(st.session_state.zip_path)
+                static_path = os.path.join(static_dir, zip_filename)
+                
+                # Check if exists
+                if not os.path.exists(static_path):
+                     try:
+                         # Try Symlink first (Zero Space)
+                         os.symlink(os.path.abspath(st.session_state.zip_path), static_path)
+                         # Note: Use abspath for symlink source
+                     except OSError:
+                         # Fallback to copy if symlink fails (e.g. permission or Windows)
+                         import shutil
+                         shutil.copy2(st.session_state.zip_path, static_path)
+                
+                # Render HTML Link
+                # Note: 'app/static/' is the standard mount point for the 'static' folder in Streamlit
+                download_url = f"app/static/{zip_filename}" 
+                st.markdown(f'<a href="{download_url}" download="{zip_filename}" style="display: inline-block; padding: 0.5em 1em; color: white; background-color: #FF4B4B; border-radius: 4px; text-decoration: none;">📦 Download ZIP (Direct Link)</a>', unsafe_allow_html=True)
+                
+            else:
+                # NORMAL STRATEGY: In-Memory
+                with open(st.session_state.zip_path, "rb") as f:
+                    st.download_button("📦 DOWNLOAD ZIP", f, file_name=os.path.basename(st.session_state.zip_path), mime="application/zip", use_container_width=True, type="primary")
+            
+            # 3. Local Fallback
+            if st.button("📂 OPEN FOLDER (Local)", key="open_folder_hero", use_container_width=True, help="Opens the folder on the server machine (useful if running locally)."):
+                 # Open directory containing the zip
+                 target_dir = os.path.dirname(st.session_state.zip_path)
+                 StorageManager().open_mission_folder(target_dir)
+
         with subcol2:
             if st.button("☁️ Save to Drive", use_container_width=True):
                 if not st.session_state.credentials:
@@ -394,9 +433,12 @@ if st.session_state.pipeline_run and st.session_state.zip_path and os.path.exist
         render_visualizations(st.session_state.timeline_csv)
 
 # --- Sidebar ---
+def close_history():
+    st.session_state.history_open = False
+
 with st.sidebar:
     # Mission button at top
-    start_btn = st.button("🚀 Start Research Mission", type="primary", use_container_width=True)
+    start_btn = st.button("🚀 Start Research Mission", type="primary", use_container_width=True, on_click=close_history)
     st.divider()
     
     # Grouped: History and Alerts
@@ -517,6 +559,23 @@ with st.sidebar:
                 st.divider()
     
     st.divider()
+    
+    # --- Storage Management ---
+    with st.expander("💾 Storage Management"):
+        storage_mgr = StorageManager(max_missions=int(os.getenv("MAX_MISSIONS", "2")))
+        stats = storage_mgr.get_storage_stats()
+        
+        st.write(f"**Missions Stored:** {stats['mission_count']}")
+        st.write(f"**Total Size:** {stats['total_size_gb']} GB")
+        if stats['oldest_mission_date'] != "N/A":
+            st.write(f"**Oldest:** {stats['oldest_mission_date']}")
+        
+        if st.button("🗑️ Clear All Missions", use_container_width=True):
+            deleted = storage_mgr.clear_all_missions()
+            st.success(f"Deleted {deleted} mission(s)")
+            st.rerun()
+    
+    st.divider()
 
     st.header("Research Parameters")
 
@@ -609,10 +668,33 @@ with st.sidebar:
         help="Decides which papers to keep when trimming the list to your Target Count."
     )
     
+    # Research Mode (Fast vs Deep)
+    research_mode = st.radio(
+        "Research Mode",
+        ["Fast (Direct Only)", "Deep (Comprehensive)"],
+        index=1, # Default to Deep
+        help="Fast: Skips AI sorting and deep scraping (15m). Deep: Full AI + Web Search (90m)."
+    )
+    is_fast_ui = "Fast" in research_mode
+
     st.write("Organization:")
     col_org1, col_org2 = st.columns(2)
-    auto_folders = col_org1.checkbox("Enable AI Auto-Categorization", value=auto_saved, help="Use LLM to sort papers into sub-folders.")
+    
+    # Logic: If Fast, disable Auto-Categorization (since we skip LLM)
+    auto_val = auto_saved
+    auto_disabled = False
+    if is_fast_ui:
+        auto_val = False
+        auto_disabled = True
+        
+    auto_folders = col_org1.checkbox(
+        "Enable AI Auto-Categorization", 
+        value=auto_val, 
+        disabled=auto_disabled,
+        help="Use LLM to sort papers into sub-folders. (Disabled in Fast Mode)"
+    )
     use_keywords_subfolders = col_org2.checkbox("Use Keywords as Sub-folders", value=key_sub_saved, help="Create a parent folder for each Search Term/Keyword.")
+
     
     filename_format_saved = get_setting('filename_format', "Title")
     filename_format = st.selectbox(
@@ -632,6 +714,12 @@ if start_btn:
     if not topic:
         st.error("Please enter a Research Topic.")
     else:
+        # Auto-cleanup old missions before starting new one
+        storage_mgr = StorageManager(max_missions=int(os.getenv("MAX_MISSIONS", "2")))
+        deleted = storage_mgr.cleanup_excess_missions()
+        if deleted > 0:
+            st.info(f"🗑️ Auto-cleaned {deleted} old mission(s) to free space")
+        
         st.session_state.pipeline_run = False
         st.session_state.zip_path = None
         st.session_state.catalog_content = None
@@ -679,6 +767,8 @@ if start_btn:
 
             api_key_to_use = user_api_key if user_api_key else None
 
+            is_fast = "Fast" in research_mode 
+
             pipeline_gen = run_full_pipeline(
                 topic=topic,
                 keywords=keywords,
@@ -693,7 +783,8 @@ if start_btn:
                 google_api_key=api_key_to_use,
                 auto_folders=auto_folders,
                 use_keywords=use_keywords_subfolders,
-                filename_format=filename_format
+                filename_format=filename_format,
+                is_fast_mode=is_fast
             )
             
             final_zip_path = None

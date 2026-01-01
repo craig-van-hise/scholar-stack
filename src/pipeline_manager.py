@@ -7,7 +7,7 @@ import shutil
 def run_full_pipeline(topic, keywords=None, author=None, publication=None, 
                       date_start=None, date_end=None, sites=None, count=10, 
                       sort_method="Most Relevant", google_api_key=None, keyword_logic='any',
-                      auto_folders=True, use_keywords=False, filename_format="Title"):
+                      auto_folders=True, use_keywords=False, filename_format="Title", is_fast_mode=False):
     """
     Orchestrates the full research pipeline in an isolated temporary directory.
     Yields log lines for real-time UI updates.
@@ -16,7 +16,7 @@ def run_full_pipeline(topic, keywords=None, author=None, publication=None,
     
     # 1. Setup Isolation Chamber (Temp Directory)
     # This ensures multiple users don't overwrite each other's files
-    temp_dir = tempfile.mkdtemp(prefix="urp_mission_")
+    temp_dir = tempfile.mkdtemp(prefix="scholar_stack_mission_")
     current_dir = os.getcwd()
     
     # Get absolute paths to the scripts (since we will change execution context)
@@ -97,6 +97,9 @@ def run_full_pipeline(topic, keywords=None, author=None, publication=None,
         
         if use_keywords:
             cluster_cmd.append("--use_keywords")
+            
+        if is_fast_mode:
+            cluster_cmd.append("--fast_mode")
         
         process = subprocess.Popen(
             cluster_cmd, 
@@ -135,6 +138,9 @@ def run_full_pipeline(topic, keywords=None, author=None, publication=None,
             download_cmd.extend(["--date_start", str(date_start)])
         if date_end:
             download_cmd.extend(["--date_end", str(date_end)])
+            
+        if is_fast_mode:
+            download_cmd.append("--fast_mode")
         
         process = subprocess.Popen(
             download_cmd, 

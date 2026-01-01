@@ -11,7 +11,8 @@
 * **Strict Taxonomy**: Powered by **Google Gemini**, the agent reads abstracts and organizes papers into precise, technical sub-fields (e.g., "Ambisonics" instead of "General Audio").
 * **Search History & Persistence**: The app "remembers" your settings between sessions. A **Mission Log** lets you review and reload past search configurations instantly.
 * **Curated Packaging**: Packages your research into a **downloadable ZIP file** or syncs it directly to **Google Drive**.
-* **Modern Interface**: A Streamlit web app with **Modal Dialogs**, sortable history, and granular controls (Date Range, Keyword Logic, Citation Sorting).
+* **Modern Interface**: A Streamlit web app with **Research Modes** (Fast vs. Deep), sortable history, and granular controls.
+* **Storage Management**: Automatically manages disk space by cleaning up old missions and serving large files efficiently.
 
 ---
 
@@ -80,7 +81,7 @@ pip install -r requirements.txt
 To launch the interface:
 
 ```bash
-./.venv/bin/streamlit run src/app.py --server.port 8501
+source .venv/bin/activate && streamlit run src/app.py
 
 ```
 
@@ -92,7 +93,8 @@ To launch the interface:
 
 ## ⚠️ Notes
 
-* **Data Privacy**: ScholarStack does not modify your local hard drive; all files are served as a download or exported via the Google Drive API.
+* **Data Privacy**: ScholarStack processes data locally and only exports to Google Drive if authorized.
+* **Storage**: The app manages a local cache of recent missions. Older missions are automatically cleaned up to save space.
 * **Rate Limits**: Includes automatic backoff for Semantic Scholar to prevent API interruptions.
 
 ## License

@@ -36,7 +36,8 @@ def get_login_url():
     
     authorization_url, state = flow.authorization_url(
         access_type='offline',
-        include_granted_scopes='true'
+        include_granted_scopes='true',
+        prompt='consent'
     )
     return authorization_url
 

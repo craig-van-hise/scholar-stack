@@ -600,6 +600,10 @@ class ResearchCrawler:
         Runs separate, targeted searches for distinct sub-fields to maximize recall 
         and bypass OpenAlex query complexity limits.
         """
+        # Handle case where no keywords provided - use topic as keyword
+        if not self.keywords_list:
+            self.keywords_list = [self.raw_topic]
+        
         clean_keyword = self.keywords_list[0].replace('"', '')
         print(f"\n🚀 STARTING ITERATIVE LOOP SEARCH for: '{self.raw_topic}' + '{clean_keyword}'")
         
@@ -625,10 +629,15 @@ class ResearchCrawler:
             clean_keyword = keyword_str.replace('"', '').strip()
             
             for vertical in verticals:
-                print(f"\n   🔄 Loop: ('{clean_keyword}') AND ('{vertical}')", flush=True)
+                # Remove redundancy
+                is_redundant = clean_keyword.lower().strip() == vertical.lower().strip()
                 
-                # Construct simple, high-power query
-                query = f'("{clean_keyword}") AND ("{vertical}")'
+                if is_redundant:
+                    print(f"\n   🔄 Loop: ('{vertical}') [Base Topic Scan]", flush=True)
+                    query = f'("{vertical}")'
+                else:
+                    print(f"\n   🔄 Loop: ('{clean_keyword}') AND ('{vertical}')", flush=True)
+                    query = f'("{clean_keyword}") AND ("{vertical}")'
                 
                 # Execute standard query 
                 filters = ["is_oa:true", "has_doi:true", "type:article|conference-paper"]
